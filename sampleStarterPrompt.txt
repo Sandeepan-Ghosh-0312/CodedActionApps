@@ -1,0 +1,9 @@
+create a form interface app from scratch using vite. The form should have input fields applicantName type string, loanAmount type decimal, creditScore type decimal, riskFactor type integer, reviewerComments type string and textarea.
+The header of the form should be Loan Application Review and should have a logo react.svg which is in the current folder.
+The form should have 2 tabs, the first tab should be called Application Review and should have the fields above.
+The second tab should be called Attachements and should display image loanApplication.png.
+use the loanApplication.png file in the current folder.
+The form should be center aligned horizontally and theme should be light.
+Add initialization code for Action Center to the app and create action-schema.json in the root folder.
+My input fields should be applicantName type string, loanAmount type number, creditScore type number, output fields riskFactor type integer, reviewerComments type string, outcomes Approve and Reject
+Refer to AGENTS.md
