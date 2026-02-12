@@ -6,9 +6,15 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { resolveAssetUrl } from './utils';
 import companyLogo  from '../assets/react.svg'
-import { ActionCenterData, MessageTypes } from '@uipath/uipath-typescript';
+import { ActionCenterData, AttachmentResponse, MessageTypes } from '@uipath/uipath-typescript';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+interface LoanApplicationFile {
+  ID: string;
+  FullName: string;
+  MimeType: string;
+}
 
 interface FormData {
   applicantName: string;
@@ -16,8 +22,7 @@ interface FormData {
   creditScore: string;
   riskFactor: string;
   reviewerComments: string;
-  loanDocumentStorageBucket: string;
-  loanDocumentFilePath: string;
+  loanDocumentFile: LoanApplicationFile | null;
 }
 
 interface LoanHistory {
@@ -39,9 +44,7 @@ const Form = () => {
     creditScore: '',
     riskFactor: '',
     reviewerComments: '',
-    loanDocumentStorageBucket: '',
-    loanDocumentFilePath: '',
-
+    loanDocumentFile: null,
   });
   const [loanHistory, setLoanHistory] = useState<LoanHistory[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
@@ -51,16 +54,11 @@ const Form = () => {
   const [documentUrl, setDocumentUrl] = useState<string>('');
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
   const [hasLoadedDocument, setHasLoadedDocument] = useState(false);
-  const [folderId, setFolderId] = useState<any>(null);
 
   useEffect(() => {
     sdk.taskEvents.getTaskDetailsFromActionCenter((data: ActionCenterData) => {
       if (data.data) {
         setFormData(data.data as FormData);
-      }
-
-      if (data.organizationUnitId) {
-        setFolderId(data.organizationUnitId);
       }
     });
     sdk.taskEvents.initializeInActionCenter('b23b2750-30f2-4176-8f95-318446833a98', 'OR.Administration.Read OR.Jobs.Read OR.Users DataFabric.Data.Read DataFabric.Schema.Read offline_access');
@@ -114,35 +112,26 @@ const Form = () => {
     if (activeTab === 'application' && !hasLoadedDocument && !isLoadingDocument && formData) {
       const loadDocument = async () => {
         // Check if required data is available
-        console.log('loading doc', formData, folderId);
-        if (formData.loanDocumentStorageBucket && folderId && formData.loanDocumentFilePath) {
+        console.log('loading doc', formData);
+        if (formData.loanDocumentFile && formData.loanDocumentFile.ID) {
           try {
             setIsLoadingDocument(true);
-            console.log('Fetching buckets...');
-            const bucketsResponse = await sdk.buckets.getAll({
-              filter: "name eq 'testBucket'"
-            });
-            console.log('Buckets response:', bucketsResponse);
+            console.log('Fetching attachment...');
+            const attachmentResponse = await sdk.attachments.getById(formData.loanDocumentFile.ID);
+            console.log('Attachment response:', attachmentResponse);
 
-            // Filter bucket by name
-            const bucket = bucketsResponse.items.find((b: any) => b.name === formData.loanDocumentStorageBucket);
-
-            if (bucket) {
-              console.log('Found bucket:', bucket);
-              const readUri = await sdk.buckets.getReadUri({
-                bucketId: bucket.id,
-                folderId: folderId,
-                path: formData.loanDocumentFilePath
-              });
+            // The response contains the read URI
+            if (attachmentResponse && (attachmentResponse as AttachmentResponse).blobFileAccess.uri) {
+              const readUri = (attachmentResponse as AttachmentResponse).blobFileAccess.uri;
               console.log('Read URI:', readUri);
-              setDocumentUrl(readUri.uri);
+              setDocumentUrl(readUri);
             } else {
-              console.error('Bucket not found:', formData.loanDocumentStorageBucket);
+              console.error('No URI found in attachment response');
             }
             setHasLoadedDocument(true);
           } catch (error) {
             console.error('Error fetching document URL:', error);
-            sdk.taskEvents.displayMessage('Error fetching document ' + error, MessageTypes.error);
+            sdk.taskEvents.displayMessage('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
@@ -152,7 +141,7 @@ const Form = () => {
 
       loadDocument();
     }
-  }, [activeTab, hasLoadedDocument, isLoadingDocument, formData, folderId]);
+  }, [activeTab, hasLoadedDocument, isLoadingDocument, formData]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

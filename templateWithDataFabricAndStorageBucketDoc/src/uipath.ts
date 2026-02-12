@@ -1,7 +1,7 @@
 import { UiPath } from '@uipath/uipath-typescript';
 
 let sdk = new UiPath({
-  baseUrl: 'https://alpha.api.uipath.com',
+  baseUrl: 'https://alpha.uipath.com',
   orgName: 'pricingtest',
   tenantName: 'testTenant',
   secret: 'dummy',
