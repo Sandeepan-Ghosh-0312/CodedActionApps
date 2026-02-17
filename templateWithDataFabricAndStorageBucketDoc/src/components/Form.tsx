@@ -1,6 +1,6 @@
 import { useState, useEffect, ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import './Form.css';
-import sdk from '../uipath';
+import uipath from '../uipath';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -54,7 +54,7 @@ const Form = () => {
   const [folderId, setFolderId] = useState<any>(null);
 
   useEffect(() => {
-    sdk.taskEvents.getTaskDetailsFromActionCenter((data: ActionCenterData) => {
+    uipath.taskEventsService.getTaskDetailsFromActionCenter((data: ActionCenterData) => {
       if (data.data) {
         setFormData(data.data as FormData);
       }
@@ -63,10 +63,10 @@ const Form = () => {
         setFolderId(data.organizationUnitId);
       }
     });
-    sdk.taskEvents.initializeInActionCenter('b23b2750-30f2-4176-8f95-318446833a98', 'OR.Administration.Read OR.Jobs.Read OR.Users DataFabric.Data.Read DataFabric.Schema.Read offline_access');
+    uipath.taskEventsService.initializeInActionCenter('b23b2750-30f2-4176-8f95-318446833a98', 'OR.Administration.Read OR.Jobs.Read OR.Users DataFabric.Data.Read DataFabric.Schema.Read offline_access');
 
     return () => {
-      sdk.taskEvents.cleanup();
+      uipath.taskEventsService.cleanup();
     }
   }, []);
 
@@ -76,7 +76,7 @@ const Form = () => {
       const loadLoanHistory = async () => {
         try {
           setIsLoadingHistory(true);
-          const response = await sdk.entities.getRecordsById('529093a4-1fc6-f011-8195-6045bd0240b6', {
+          const response = await uipath.entityService.getAllRecords('529093a4-1fc6-f011-8195-6045bd0240b6', {
             pageSize: 5,
             expansionLevel: 1
           });
@@ -119,7 +119,7 @@ const Form = () => {
           try {
             setIsLoadingDocument(true);
             console.log('Fetching buckets...');
-            const bucketsResponse = await sdk.buckets.getAll({
+            const bucketsResponse = await uipath.bucketService.getAll({
               filter: "name eq 'testBucket'"
             });
             console.log('Buckets response:', bucketsResponse);
@@ -129,7 +129,7 @@ const Form = () => {
 
             if (bucket) {
               console.log('Found bucket:', bucket);
-              const readUri = await sdk.buckets.getReadUri({
+              const readUri = await uipath.bucketService.getReadUri({
                 bucketId: bucket.id,
                 folderId: folderId,
                 path: formData.loanDocumentFilePath
@@ -141,8 +141,8 @@ const Form = () => {
             }
             setHasLoadedDocument(true);
           } catch (error) {
-            console.error('Error fetching document URL:', error);
-            sdk.taskEvents.displayMessage('Error fetching document ' + error, MessageTypes.error);
+            console.error('Error fetching document URL:', JSON.stringify(error));
+            uipath.taskEventsService.displayMessage('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
@@ -161,7 +161,7 @@ const Form = () => {
       [name]: value
     }
     setFormData(updatedData);
-    sdk.taskEvents.dataChanged(updatedData);
+    uipath.taskEventsService.dataChanged(updatedData);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -177,12 +177,12 @@ const Form = () => {
 
   const handleAccept = () => {
     console.log('Form accepted:', formData);
-    sdk.taskEvents.completeTask('Accept', formData);
+    uipath.taskEventsService.completeTask('Accept', formData);
   };
 
   const handleReject = () => {
     console.log('Form rejected:', formData);
-    sdk.taskEvents.completeTask('Reject', formData);
+    uipath.taskEventsService.completeTask('Reject', formData);
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
