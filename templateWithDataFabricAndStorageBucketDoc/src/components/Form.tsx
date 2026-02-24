@@ -6,7 +6,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { resolveAssetUrl } from './utils';
 import companyLogo  from '../assets/react.svg'
-import { ActionCenterData, MessageTypes } from '@uipath/uipath-typescript';
+import { ActionCenterData, MessageTypes } from '@uipath/coded-action-apps';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -54,20 +54,13 @@ const Form = () => {
   const [folderId, setFolderId] = useState<any>(null);
 
   useEffect(() => {
-    uipath.taskEventsService.getTaskDetailsFromActionCenter((data: ActionCenterData) => {
-      if (data.data) {
-        setFormData(data.data as FormData);
-      }
-
-      if (data.organizationUnitId) {
-        setFolderId(data.organizationUnitId);
-      }
-    });
-    uipath.taskEventsService.initializeInActionCenter('b23b2750-30f2-4176-8f95-318446833a98', 'OR.Administration.Read OR.Jobs.Read OR.Users DataFabric.Data.Read DataFabric.Schema.Read offline_access');
-
-    return () => {
-      uipath.taskEventsService.cleanup();
+    const taskData = async () => { 
+      const taskData = await uipath.codedActionAppsService.getTaskDetailsFromActionCenter() as Partial<ActionCenterData>;
+      setFormData(taskData.data as FormData);
+      setFolderId(taskData.folderId);
     }
+
+    taskData();
   }, []);
 
   // Load loan history data only when switching to applicant tab
@@ -142,7 +135,7 @@ const Form = () => {
             setHasLoadedDocument(true);
           } catch (error) {
             console.error('Error fetching document URL:', JSON.stringify(error));
-            uipath.taskEventsService.displayMessage('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
+            uipath.codedActionAppsService.displayMessage('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
@@ -161,7 +154,7 @@ const Form = () => {
       [name]: value
     }
     setFormData(updatedData);
-    uipath.taskEventsService.dataChanged(updatedData);
+    uipath.codedActionAppsService.dataChanged(updatedData);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -177,12 +170,12 @@ const Form = () => {
 
   const handleAccept = () => {
     console.log('Form accepted:', formData);
-    uipath.taskEventsService.completeTask('Accept', formData);
+    uipath.codedActionAppsService.completeTask('Accept', formData);
   };
 
   const handleReject = () => {
     console.log('Form rejected:', formData);
-    uipath.taskEventsService.completeTask('Reject', formData);
+    uipath.codedActionAppsService.completeTask('Reject', formData);
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
