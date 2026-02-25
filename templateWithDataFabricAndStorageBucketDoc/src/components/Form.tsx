@@ -135,7 +135,7 @@ const Form = () => {
             setHasLoadedDocument(true);
           } catch (error) {
             console.error('Error fetching document URL:', JSON.stringify(error));
-            uipath.codedActionAppsService.displayMessageInActionCenter('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
+            uipath.codedActionAppsService.displayMessageInActionCenter('Error fetching document ' + JSON.stringify(error), MessageTypes.Error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
