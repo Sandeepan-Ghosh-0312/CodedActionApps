@@ -1,12 +1,13 @@
 import { useState, useEffect, ChangeEvent, FormEvent, KeyboardEvent } from 'react';
 import './Form.css';
-import sdk from '../uipath';
 import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { resolveAssetUrl } from './utils';
 import companyLogo  from '../assets/react.svg'
-import { ActionCenterData, AttachmentResponse, MessageTypes } from '@uipath/uipath-typescript';
+import { ActionCenterData, MessageTypes } from '@uipath/coded-action-apps';
+import uipath from '../uipath';
+import { AttachmentResponse } from '@uipath/uipath-typescript/attachments';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -56,16 +57,12 @@ const Form = () => {
   const [hasLoadedDocument, setHasLoadedDocument] = useState(false);
 
   useEffect(() => {
-    sdk.taskEvents.getTaskDetailsFromActionCenter((data: ActionCenterData) => {
-      if (data.data) {
-        setFormData(data.data as FormData);
-      }
-    });
-    sdk.taskEvents.initializeInActionCenter('b23b2750-30f2-4176-8f95-318446833a98', 'OR.Administration.Read OR.Jobs.Read OR.Users DataFabric.Data.Read DataFabric.Schema.Read offline_access');
-
-    return () => {
-      sdk.taskEvents.cleanup();
+    const taskData = async () => { 
+      const taskData = await uipath.codedActionAppsService.getTaskDetailsFromActionCenter() as ActionCenterData;
+      setFormData(taskData.data as FormData);
     }
+
+    taskData();
   }, []);
 
   // Load loan history data only when switching to applicant tab
@@ -74,7 +71,7 @@ const Form = () => {
       const loadLoanHistory = async () => {
         try {
           setIsLoadingHistory(true);
-          const response = await sdk.entities.getRecordsById('529093a4-1fc6-f011-8195-6045bd0240b6', {
+          const response = await uipath.entityService.getAllRecords('529093a4-1fc6-f011-8195-6045bd0240b6', {
             pageSize: 5,
             expansionLevel: 1
           });
@@ -117,7 +114,7 @@ const Form = () => {
           try {
             setIsLoadingDocument(true);
             console.log('Fetching attachment...');
-            const attachmentResponse = await sdk.attachments.getById(formData.loanDocumentFile.ID);
+            const attachmentResponse = await uipath.attachmentService.getById(formData.loanDocumentFile.ID);
             console.log('Attachment response:', attachmentResponse);
 
             // The response contains the read URI
@@ -131,7 +128,7 @@ const Form = () => {
             setHasLoadedDocument(true);
           } catch (error) {
             console.error('Error fetching document URL:', error);
-            sdk.taskEvents.displayMessage('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
+            uipath.codedActionAppsService.displayMessageInActionCenter('Error fetching document ' + JSON.stringify(error), MessageTypes.Error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
@@ -150,7 +147,7 @@ const Form = () => {
       [name]: value
     }
     setFormData(updatedData);
-    sdk.taskEvents.dataChanged(updatedData);
+    uipath.codedActionAppsService.notifyDataChangedToActionCenter(updatedData);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -166,12 +163,12 @@ const Form = () => {
 
   const handleAccept = () => {
     console.log('Form accepted:', formData);
-    sdk.taskEvents.completeTask('Accept', formData);
+    uipath.codedActionAppsService.completeTaskInActionCenter('Accept', formData);
   };
 
   const handleReject = () => {
     console.log('Form rejected:', formData);
-    sdk.taskEvents.completeTask('Reject', formData);
+    uipath.codedActionAppsService.completeTaskInActionCenter('Reject', formData);
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
