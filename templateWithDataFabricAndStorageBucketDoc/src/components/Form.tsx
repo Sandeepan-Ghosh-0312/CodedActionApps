@@ -55,7 +55,7 @@ const Form = () => {
 
   useEffect(() => {
     const taskData = async () => { 
-      const taskData = await uipath.codedActionAppsService.getTaskDetailsFromActionCenter() as Partial<ActionCenterData>;
+      const taskData = await uipath.codedActionAppsService.getTaskDetailsFromActionCenter() as ActionCenterData;
       setFormData(taskData.data as FormData);
       setFolderId(taskData.folderId);
     }
@@ -135,7 +135,7 @@ const Form = () => {
             setHasLoadedDocument(true);
           } catch (error) {
             console.error('Error fetching document URL:', JSON.stringify(error));
-            uipath.codedActionAppsService.displayMessage('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
+            uipath.codedActionAppsService.displayMessageInActionCenter('Error fetching document ' + JSON.stringify(error), MessageTypes.error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
@@ -154,7 +154,7 @@ const Form = () => {
       [name]: value
     }
     setFormData(updatedData);
-    uipath.codedActionAppsService.dataChanged(updatedData);
+    uipath.codedActionAppsService.notifyDataChangedToActionCenter(updatedData);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -170,12 +170,12 @@ const Form = () => {
 
   const handleAccept = () => {
     console.log('Form accepted:', formData);
-    uipath.codedActionAppsService.completeTask('Accept', formData);
+    uipath.codedActionAppsService.completeTaskInActionCenter('Accept', formData);
   };
 
   const handleReject = () => {
     console.log('Form rejected:', formData);
-    uipath.codedActionAppsService.completeTask('Reject', formData);
+    uipath.codedActionAppsService.completeTaskInActionCenter('Reject', formData);
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
