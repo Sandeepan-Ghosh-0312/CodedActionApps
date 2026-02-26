@@ -6,7 +6,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { resolveAssetUrl } from './utils';
 import companyLogo  from '../assets/react.svg'
-import { ActionCenterData, MessageTypes } from '@uipath/coded-action-apps';
+import { MessageSeverity, Task, TaskCompleteResponse } from '@uipath/coded-action-apps';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
@@ -55,9 +55,10 @@ const Form = () => {
 
   useEffect(() => {
     const taskData = async () => { 
-      const taskData = await uipath.codedActionAppsService.getTaskDetailsFromActionCenter() as ActionCenterData;
+      const taskData = await uipath.codedActionAppsService.getTask() as Task;
       setFormData(taskData.data as FormData);
       setFolderId(taskData.folderId);
+      console.log('Theme', taskData.theme);
     }
 
     taskData();
@@ -135,7 +136,7 @@ const Form = () => {
             setHasLoadedDocument(true);
           } catch (error) {
             console.error('Error fetching document URL:', JSON.stringify(error));
-            uipath.codedActionAppsService.displayMessageInActionCenter('Error fetching document ' + JSON.stringify(error), MessageTypes.Error);
+            uipath.codedActionAppsService.showMessage('Error fetching document ' + JSON.stringify(error), MessageSeverity.Error);
             setHasLoadedDocument(true);
           } finally {
             setIsLoadingDocument(false);
@@ -154,7 +155,7 @@ const Form = () => {
       [name]: value
     }
     setFormData(updatedData);
-    uipath.codedActionAppsService.notifyDataChangedToActionCenter(updatedData);
+    uipath.codedActionAppsService.setTaskData(updatedData);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -168,14 +169,20 @@ const Form = () => {
     e.preventDefault();
   };
 
-  const handleAccept = () => {
+  const handleAccept = async () => {
     console.log('Form accepted:', formData);
-    uipath.codedActionAppsService.completeTaskInActionCenter('Accept', formData);
+    const response = await uipath.codedActionAppsService.completeTask('Accept', formData) as TaskCompleteResponse;
+    if (!response.success) {
+      uipath.codedActionAppsService.showMessage('Failed to complete Task ' + response.errorCode + ' ' + response.errorMessage, MessageSeverity.Error);
+    }
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     console.log('Form rejected:', formData);
-    uipath.codedActionAppsService.completeTaskInActionCenter('Reject', formData);
+    const response = await uipath.codedActionAppsService.completeTask('Reject', formData) as TaskCompleteResponse;
+    if (!response.success) {
+      uipath.codedActionAppsService.showMessage('Failed to complete Task ' + response.errorCode + ' ' + response.errorMessage, MessageSeverity.Error);
+    }
   };
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
