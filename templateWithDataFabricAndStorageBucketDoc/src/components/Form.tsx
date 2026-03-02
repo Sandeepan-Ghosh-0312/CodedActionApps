@@ -6,7 +6,7 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { resolveAssetUrl } from './utils';
 import companyLogo  from '../assets/react.svg'
-import { MessageSeverity, Task, TaskCompleteResponse } from '@uipath/coded-action-apps';
+import { MessageSeverity, Task, TaskCompleteResponse } from '@uipath/uipath-ts-coded-action-apps';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 

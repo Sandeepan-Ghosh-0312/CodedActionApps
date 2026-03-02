@@ -1,7 +1,7 @@
 import { BucketService } from '@uipath/uipath-typescript/buckets';
 import { UiPath } from '@uipath/uipath-typescript/core';
 import { Entities } from '@uipath/uipath-typescript/entities';
-import { CodedActionAppsService } from '@uipath/coded-action-apps';
+import { CodedActionAppsService } from '@uipath/uipath-ts-coded-action-apps';
 
 let sdk = new UiPath({
   baseUrl: 'https://alpha.api.uipath.com',
