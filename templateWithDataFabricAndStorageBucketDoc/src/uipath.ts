@@ -1,28 +1,14 @@
-import { UiPath } from '@uipath/uipath-typescript';
+import { BucketService } from '@uipath/uipath-typescript/buckets';
+import { UiPath } from '@uipath/uipath-typescript/core';
+import { Entities } from '@uipath/uipath-typescript/entities';
+import { CodedActionAppsService } from '@uipath/uipath-ts-coded-action-apps';
 
-let sdk = new UiPath({
-  baseUrl: 'dummy',
-  orgName: 'dummy',
-  tenantName: 'dummy',
-  secret: 'dummy',
-});
+let sdk = new UiPath();
 
-/**
- * Initialize or reinitialize the SDK with runtime configuration
- */
-export const initializeSdk = (config: {
-  baseUrl: string;
-  orgName: string;
-  tenantName: string;
-  token: string;
-}): void => {
-  sdk = new UiPath({
-    baseUrl: config.baseUrl,
-    orgName: config.orgName,
-    tenantName: config.tenantName,
-    secret: config.token,
-  });
-  console.log('UiPath SDK initialized with runtime config');
-};
+let codedActionAppsService = new CodedActionAppsService();
 
-export default sdk;
+let entityService = new Entities(sdk);
+
+let bucketService = new BucketService(sdk);
+
+export default { codedActionAppsService, entityService, bucketService };

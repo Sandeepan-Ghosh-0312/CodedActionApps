@@ -8,7 +8,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Modern color palette - Teal & Slate */
+  /* Modern color palette - Blue & Slate */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --text-primary: #1e293b;
@@ -16,11 +16,26 @@
   --border-color: #e2e8f0;
   --input-bg: #ffffff;
   --input-border: #cbd5e1;
-  --input-focus: #14b8a6;
-  --accent-primary: #14b8a6;
-  --accent-hover: #0d9488;
+  --input-focus: #0067DF;
+  --accent-primary: #0067DF;
+  --accent-hover: #0052b3;
   --shadow: rgba(15, 23, 42, 0.08);
   --shadow-md: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: #334155;
+  --input-bg: #1e293b;
+  --input-border: #475569;
+  --input-focus: #0067DF;
+  --accent-primary: #0067DF;
+  --accent-hover: #0052b3;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-md: rgba(0, 0, 0, 0.4);
 }
 
 body {
