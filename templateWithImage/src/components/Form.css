@@ -51,13 +51,12 @@
   color: var(--text-secondary);
 }
 
-/* Tabs Container */
+/* Tabs */
 .tabs-container {
   border: 1px solid var(--border-color);
   border-radius: 10px;
 }
 
-/* Tab Navigation */
 .tab-navigation {
   display: flex;
   gap: 0.5rem;
@@ -80,9 +79,8 @@
 }
 
 .tab-button:hover {
-  color: #0067DF;
+  color: var(--accent-primary);
   background-color: rgba(0, 0, 0, 0.05);
-  border-bottom-color: transparent;
 }
 
 .tab-button:focus {
@@ -91,11 +89,10 @@
 }
 
 .tab-button.active {
-  color: #0067DF;
-  border-bottom-color: #0067DF;
+  color: var(--accent-primary);
+  border-bottom-color: var(--accent-primary);
 }
 
-/* Tab Content */
 .tab-content {
   min-height: 400px;
   padding: 30px;
@@ -117,166 +114,15 @@
   }
 }
 
-/* Loan History Table */
-.loading-message,
-.empty-message {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  background-color: var(--bg-primary);
-  border-radius: 8px;
-}
-
-.loading-message {
-  color: #0067DF;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(0, 103, 223, 0.2);
-  border-top-color: #0067DF;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loan-history-grid {
-  overflow-x: auto;
-  margin-top: 1rem;
-}
-
-.loan-history-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: var(--bg-secondary);
-}
-
-.loan-history-table thead {
-  background-color: var(--bg-primary);
-}
-
-.loan-history-table th {
-  padding: 1rem;
-  text-align: left;
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: var(--text-primary);
-  border-bottom: 2px solid var(--border-color);
-  letter-spacing: 0.025em;
-}
-
-.loan-history-table td {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 0.9rem;
-}
-
-.loan-history-table tbody tr {
-  transition: background-color 0.2s ease;
-}
-
-.loan-history-table tbody tr:hover {
-  background-color: var(--bg-primary);
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 0.35rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-}
-
-.status-badge.completed {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.active {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-/* Application Image Container */
+/* Application image */
 .application-image-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  margin-top: 0;
 }
 
-.application-image {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px var(--shadow);
-  border: 1px solid var(--border-color);
-}
-
-.image-caption {
-  margin-top: 1rem;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  font-style: italic;
-}
-
-@media (max-width: 600px) {
-  .form-container {
-    padding: 1rem;
-  }
-
-  .form-section {
-    padding: 1.5rem;
-  }
-
-  .form-header-title h1 {
-    font-size: 1.5rem;
-  }
-
-  .tab-navigation {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .tab-button {
-    text-align: left;
-    border-bottom: none;
-    border-left: 3px solid transparent;
-    padding-left: 1rem;
-    margin-bottom: 0;
-  }
-
-  .tab-button.active {
-    border-bottom-color: transparent;
-    border-left-color: var(--accent-primary);
-  }
-
-  .loan-history-table {
-    font-size: 0.85rem;
-  }
-
-  .loan-history-table th,
-  .loan-history-table td {
-    padding: 0.75rem;
-  }
-}
-
+/* Form fields */
 .form-section h2 {
   margin-top: 0;
   margin-bottom: 1rem;
@@ -304,6 +150,10 @@
   font-weight: 600;
   font-size: 0.875rem;
   letter-spacing: 0.01em;
+}
+
+.required-marker {
+  color: #e53e3e;
 }
 
 .form-group input,
@@ -343,6 +193,26 @@
   opacity: 0.6;
 }
 
+.form-group input:read-only,
+.form-group textarea:read-only {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: default;
+  border-color: var(--border-color);
+}
+
+.form-group input:read-only:hover,
+.form-group textarea:read-only:hover {
+  border-color: var(--border-color);
+}
+
+.form-group input:read-only:focus,
+.form-group textarea:read-only:focus {
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+/* Action buttons */
 .form-buttons {
   display: flex;
   gap: 0.75rem;
@@ -397,6 +267,36 @@
 }
 
 @media (max-width: 600px) {
+  .form-container {
+    padding: 1rem;
+  }
+
+  .form-section {
+    padding: 1.5rem;
+  }
+
+  .form-header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .tab-navigation {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .tab-button {
+    text-align: left;
+    border-bottom: none;
+    border-left: 3px solid transparent;
+    padding-left: 1rem;
+    margin-bottom: 0;
+  }
+
+  .tab-button.active {
+    border-bottom-color: transparent;
+    border-left-color: var(--accent-primary);
+  }
+
   .form-buttons {
     flex-direction: column;
     gap: 0.75rem;
@@ -406,78 +306,4 @@
   .reject-button {
     width: 100%;
   }
-}
-
-/* PDF Viewer Styles */
-.pdf-viewer-box {
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  background-color: var(--bg-primary);
-  box-shadow: 0 2px 8px var(--shadow);
-  max-height: 600px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin-top: 1.5rem;
-}
-
-.application-image-container .react-pdf__Document {
-  margin: 0;
-  padding: 0;
-}
-
-.application-image-container .react-pdf__Page {
-  margin: 0 0 1rem 0;
-  padding: 0;
-}
-
-.application-image-container .react-pdf__Page:last-child {
-  margin-bottom: 0;
-}
-
-.application-image-container .react-pdf__Page__canvas {
-  margin: 0 auto;
-  display: block;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.pdf-controls {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 1rem;
-  padding: 0.75rem;
-  background-color: var(--bg-primary);
-  border-radius: 8px;
-}
-
-.pdf-nav-button {
-  padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.pdf-nav-button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
-}
-
-.pdf-nav-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.pdf-page-info {
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  font-weight: 500;
-  min-width: 120px;
-  text-align: center;
 }
