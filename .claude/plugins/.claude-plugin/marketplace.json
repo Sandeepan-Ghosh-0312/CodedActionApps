@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "procode-plugins",
+  "description": "ProCode internal plugins for UiPath coded action app development",
+  "owner": {
+    "name": "ProCode"
+  },
+  "plugins": [
+    {
+      "name": "uipath-sdk-migrate",
+      "description": "Migrate a UiPath coded action app to new split SDK packages and coded action apps package",
+      "version": "1.0.0",
+      "source": "./uipath-sdk-migrate",
+      "category": "development"
+    }
+  ]
+}
