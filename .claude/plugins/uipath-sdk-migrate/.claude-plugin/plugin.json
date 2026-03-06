@@ -1,0 +1,5 @@
+{
+  "name": "uipath-sdk-migrate",
+  "description": "Migrate a UiPath coded action app to new split SDK packages and coded action apps package",
+  "version": "1.0.0"
+}
