@@ -1,4 +1,4 @@
-import { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, ChangeEvent, KeyboardEvent } from 'react';
 import './Form.css';
 import { Theme, MessageSeverity } from '@uipath/uipath-ts-coded-action-apps';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -53,12 +53,16 @@ const Form = ({ onInitTheme }: FormProps) => {
   const [loanHistory, setLoanHistory] = useState<LoanHistory[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
-  const [numPages, setNumPages] = useState<number | null>(null);
+  const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
-  const [documentUrl, setDocumentUrl] = useState<string>('');
+  const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
   const [hasLoadedDocument, setHasLoadedDocument] = useState(false);
+  const [documentError, setDocumentError] = useState<string | null>(null);
+  const [scale, setScale] = useState(1.0);
+  const [pageRendering, setPageRendering] = useState(false);
   const [folderId, setFolderId] = useState<any>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     uipath.codedActionAppsService.getTask().then((task) => {
@@ -113,46 +117,86 @@ const Form = ({ onInitTheme }: FormProps) => {
   // Load document data only when switching to application tab
   useEffect(() => {
     if (activeTab === 'application' && !hasLoadedDocument && !isLoadingDocument && formData) {
+      if (!formData.loanDocumentStorageBucket || !folderId || !formData.loanDocumentFilePath) return;
+      let cancelled = false;
+
       const loadDocument = async () => {
-        // Check if required data is available
-        if (formData.loanDocumentStorageBucket && folderId && formData.loanDocumentFilePath) {
-          try {
-            setIsLoadingDocument(true);
-            console.log('Fetching buckets...');
-            const bucketsResponse = await uipath.bucketService.getAll({
-              filter: `name eq '${formData.loanDocumentStorageBucket}'`
-            });
-            console.log('Buckets response:', bucketsResponse);
+        try {
+          setIsLoadingDocument(true);
+          setDocumentError(null);
+          const bucketsResponse = await uipath.bucketService.getAll({
+            filter: `name eq '${formData.loanDocumentStorageBucket}'`
+          });
 
-            // Filter bucket by name
-            const bucket = bucketsResponse.items.find((b: any) => b.name === formData.loanDocumentStorageBucket);
+          const bucket = bucketsResponse.items.find((b: any) => b.name === formData.loanDocumentStorageBucket);
+          if (!bucket) throw new Error(`Bucket "${formData.loanDocumentStorageBucket}" not found.`);
 
-            if (bucket) {
-              console.log('Found bucket:', bucket);
-              const readUri = await uipath.bucketService.getReadUri({
-                bucketId: bucket.id,
-                folderId: folderId,
-                path: formData.loanDocumentFilePath
-              });
-              console.log('Read URI:', readUri);
-              setDocumentUrl(readUri.uri);
-            } else {
-              console.error('Bucket not found:', formData.loanDocumentStorageBucket);
-            }
-            setHasLoadedDocument(true);
-          } catch (error) {
-            console.error('Error fetching document URL:', error);
-            setHasLoadedDocument(true);
-          } finally {
-            setIsLoadingDocument(false);
+          const uriResponse = await uipath.bucketService.getReadUri({
+            bucketId: bucket.id,
+            folderId: folderId,
+            path: formData.loanDocumentFilePath
+          });
+
+          let url: string;
+          if ((uriResponse as any).requiresAuth) {
+            const response = await fetch(uriResponse.uri, { headers: (uriResponse as any).headers });
+            if (!response.ok) throw new Error(`Download failed (HTTP ${response.status}).`);
+            const blob = await response.blob();
+            url = URL.createObjectURL(blob);
+            blobUrlRef.current = url;
+          } else {
+            url = uriResponse.uri;
           }
+
+          if (!cancelled) setDocumentUrl(url);
+          if (!cancelled) setHasLoadedDocument(true);
+        } catch (err: unknown) {
+          if (!cancelled) setDocumentError(err instanceof Error ? err.message : 'Failed to load document.');
+          if (!cancelled) setHasLoadedDocument(true);
+        } finally {
+          if (!cancelled) setIsLoadingDocument(false);
         }
       };
 
       loadDocument();
-    }
-  }, [activeTab, hasLoadedDocument, isLoadingDocument, formData, folderId]);
 
+      return () => {
+        cancelled = true;
+        if (blobUrlRef.current) {
+          URL.revokeObjectURL(blobUrlRef.current);
+          blobUrlRef.current = null;
+        }
+      };
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, hasLoadedDocument, formData, folderId]);
+
+
+  const zoomIn  = () => setScale((s) => Math.min(2.5, parseFloat((s + 0.2).toFixed(1))));
+  const zoomOut = () => setScale((s) => Math.max(0.4, parseFloat((s - 0.2).toFixed(1))));
+  const resetZoom = () => setScale(1.0);
+
+  const handleDownload = async () => {
+    if (!documentUrl) return;
+    const fileName = formData.loanDocumentFilePath.split('/').pop() || 'document.pdf';
+    let blobUrl: string;
+    let tempBlob = false;
+    if (documentUrl.startsWith('blob:')) {
+      blobUrl = documentUrl;
+    } else {
+      const response = await fetch(documentUrl);
+      const blob = await response.blob();
+      blobUrl = URL.createObjectURL(blob);
+      tempBlob = true;
+    }
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    if (tempBlob) URL.revokeObjectURL(blobUrl);
+  };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     if (isReadOnly) return;
@@ -186,15 +230,11 @@ const Form = ({ onInitTheme }: FormProps) => {
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
+    setPageNumber(1);
   };
 
-  const goToPrevPage = () => {
-    setPageNumber((prev) => Math.max(prev - 1, 1));
-  };
-
-  const goToNextPage = () => {
-    setPageNumber((prev) => Math.min(prev + 1, numPages || 1));
-  };
+  const goToPrevPage = () => setPageNumber((p) => Math.max(1, p - 1));
+  const goToNextPage = () => setPageNumber((p) => Math.min(numPages, p + 1));
 
   const riskFactorNum = Number(formData.riskFactor);
   const isRiskFactorValid = !!formData.riskFactor && riskFactorNum >= 0 && riskFactorNum <= 10;
@@ -370,51 +410,71 @@ const Form = ({ onInitTheme }: FormProps) => {
           {activeTab === 'application' && (
             <div className="tab-panel">
               <h2>Attachments</h2>
-              <div className="application-image-container">
-                <div className="pdf-viewer-box">
-                  {isLoadingDocument ? (
-                    <div className="loading-message">
-                      <div className="spinner"></div>
-                      Loading document...
+              <div className="pdf-shell">
+                {isLoadingDocument ? (
+                  <div className="pdf-skeleton">
+                    <div className="pdf-skeleton__toolbar" />
+                    <div className="pdf-skeleton__page" />
+                  </div>
+                ) : documentError ? (
+                  <div className="pdf-shell--center">
+                    <div className="pdf-error">
+                      <span className="pdf-error__icon">⚠</span>
+                      <p>{documentError}</p>
                     </div>
-                  ) : documentUrl ? (
-                    <Document
-                      file={documentUrl}
-                      onLoadSuccess={onDocumentLoadSuccess}
-                      loading={<div>Loading PDF...</div>}
-                    >
-                      <Page
-                        pageNumber={pageNumber}
-                        width={600}
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
-                      />
-                    </Document>
-                  ) : (
-                    <div className="empty-message">No document available</div>
-                  )}
-                </div>
-                {numPages && (
-                  <div className="pdf-controls">
-                    <button
-                      type="button"
-                      onClick={goToPrevPage}
-                      disabled={pageNumber <= 1}
-                      className="pdf-nav-button"
-                    >
-                      Previous
-                    </button>
-                    <span className="pdf-page-info">
-                      Page {pageNumber} of {numPages}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={goToNextPage}
-                      disabled={pageNumber >= numPages}
-                      className="pdf-nav-button"
-                    >
-                      Next
-                    </button>
+                  </div>
+                ) : documentUrl ? (
+                  <>
+                    <div className="pdf-toolbar">
+                      <div className="pdf-toolbar__group">
+                        <button type="button" className="pdf-btn" onClick={goToPrevPage} disabled={pageNumber <= 1} title="Previous page">‹</button>
+                        <span className="pdf-page-info">
+                          <span className="pdf-page-info__current">{pageNumber}</span>
+                          <span className="pdf-page-info__sep">/</span>
+                          <span className="pdf-page-info__total">{numPages || '–'}</span>
+                        </span>
+                        <button type="button" className="pdf-btn" onClick={goToNextPage} disabled={pageNumber >= numPages} title="Next page">›</button>
+                      </div>
+                      <div className="pdf-toolbar__group">
+                        <button type="button" className="pdf-btn" onClick={zoomOut} disabled={scale <= 0.4} title="Zoom out">−</button>
+                        <button type="button" className="pdf-btn pdf-btn--zoom-label" onClick={resetZoom} title="Reset zoom">
+                          {Math.round(scale * 100)}%
+                        </button>
+                        <button type="button" className="pdf-btn" onClick={zoomIn} disabled={scale >= 2.5} title="Zoom in">+</button>
+                      </div>
+                      <div className="pdf-toolbar__group">
+                        <button type="button" className="pdf-btn pdf-btn--download" onClick={handleDownload} title="Download PDF">
+                          ⬇ Download
+                        </button>
+                      </div>
+                    </div>
+                    <div className="pdf-viewport">
+                      <Document
+                        file={documentUrl}
+                        onLoadSuccess={onDocumentLoadSuccess}
+                        loading={<div className="pdf-page-loading">Loading…</div>}
+                        error={<div className="pdf-page-error">Failed to load PDF.</div>}
+                      >
+                        <Page
+                          pageNumber={pageNumber}
+                          scale={scale}
+                          renderTextLayer={true}
+                          renderAnnotationLayer={true}
+                          onRenderSuccess={() => setPageRendering(false)}
+                          onRenderError={() => setPageRendering(false)}
+                          loading={<div className="pdf-page-loading">Rendering page…</div>}
+                          className={`pdf-page${pageRendering ? ' pdf-page--rendering' : ''}`}
+                        />
+                      </Document>
+                    </div>
+                  </>
+                ) : (
+                  <div className="pdf-shell--center">
+                    <p className="pdf-empty">
+                      {formData.loanDocumentStorageBucket && formData.loanDocumentFilePath
+                        ? 'Document will load when task data is available.'
+                        : 'No document path provided.'}
+                    </p>
                   </div>
                 )}
               </div>
