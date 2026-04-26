@@ -22,6 +22,6 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.UIPATH_TENANT_NAME': JSON.stringify(env.UIPATH_TENANT_NAME || ''),
       'import.meta.env.UIPATH_BEARER_TOKEN': JSON.stringify(env.UIPATH_BEARER_TOKEN || ''),
     },
-    base: "/templatewithjobattachment" // replace with your app routing name
+    base: "/templatewithfileattachment" // replace with your app routing name
   };
 });
