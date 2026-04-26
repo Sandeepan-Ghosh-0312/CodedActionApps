@@ -168,4 +168,3 @@ This template demonstrates the recommended approach for handling direct file att
 3. **Authentication**: Handle both authenticated and non-authenticated file access patterns
 4. **Blob Management**: Properly create and cleanup blob URLs for in-browser file display
 5. **Download Support**: Provide download functionality using the file's original name
-6. 
