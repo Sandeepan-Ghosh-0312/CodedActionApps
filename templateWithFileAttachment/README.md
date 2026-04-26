@@ -127,7 +127,7 @@ This template differs from the `templateWithDataFabricAndStorageBucketDoc` in th
 
 3. In the **Properties** panel of the escalation, update the **Action App** field to point to your deployed coded action app.
    
-   <img width="3838" height="1963" alt="image" src="https://github.com/user-attachments/assets/afbb81ba-eb5b-4c2d-873b-d8f0f2c0c151" />
+   <img width="3839" height="1952" alt="Screenshot 2026-04-27 024249" src="https://github.com/user-attachments/assets/60ebf5c7-e094-450d-9d41-559209e3284b" />
 
 
 5. Click **Debug** and enter the input arguments to run the process — this will create an Action Center task backed by your app. [Known Issues](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/README.md#known-issues)
@@ -156,6 +156,10 @@ When the app loads inside Action Center:
 3. **Theme** — The app initializes in light or dark mode based on the Action Center theme preference and supports toggling via the button in the top-right corner.
 
 4. **Read-only mode** — If the task is already completed or the current user does not have edit access, all input fields are disabled and the Accept / Reject buttons are greyed out.
+
+
+https://github.com/user-attachments/assets/ac1b896b-1b52-421b-ae2d-1886920bb492
+
 
 ---
 
