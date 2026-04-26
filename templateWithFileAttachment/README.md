@@ -13,9 +13,8 @@ This template demonstrates how to handle direct file attachments in coded action
 - A **UiPath Automation Cloud** tenant with:
   - A non-confidential **External Application** (OAuth client) registered with the following:
     - Scopes:
-        - `OR.Administration.Read` (for file attachments)
-        - `OR.Folders.Read` (for folder access)
-    - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (Please add this manually now, will be done automatically soon)
+        - `OR.Folders.Read` (for file attachments)
+    - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (This gets added automatically when app is deployed, in case it does not please add it manually)
 - Install the [uipath-uipath-ts-cli-1.0.0-beta.10](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/uipath-uipath-ts-cli-1.0.0-beta.10.tgz) package.
   
   ```bash
@@ -44,7 +43,7 @@ Open `uipath.json` and update the clientId:
 
 ```json
 {
-  "scope": "OR.Administration.Read OR.Folders.Read",
+  "scope": "OR.Folders.Read",
   "clientId": "<your-external-app-client-id>",
   "orgName": "",
   "tenantName": "",
@@ -116,32 +115,35 @@ The action schema that drives this app expects the following inputs and produces
 This template differs from the `templateWithDataFabricAndStorageBucketDoc` in the following ways:
 
 1. **File Input Method**: Uses direct file attachment (`file` type) instead of Storage Bucket name and file path (string inputs)
-2. **Simplified Dependencies**: No Data Fabric integration required - only basic file attachment handling
-3. **Reduced Scopes**: Only requires `OR.Administration.Read OR.Folders.Read` instead of Data Fabric scopes
-4. **Streamlined UI**: Only 2 tabs (Review Application, Attachments) instead of 3 tabs (no applicant history from Data Fabric)
-5. **Direct File Access**: Uses `uipath.attachmentService.getById()` instead of Storage Bucket APIs
+2. **Direct File Access**: Uses `uipath.attachmentService.getById()` instead of Storage Bucket APIs
 
 ---
 
-## Creating Test Tasks
+## Viewing the coded action app in Action Center
 
-### Option 1: Using Studio Web
+1. Import the **TestTemplateWithFileAttachment.uis** solution in **Studio Web**.
+   
+   <img width="3836" height="1977" alt="Screenshot 2026-03-10 174451" src="https://github.com/user-attachments/assets/36046521-a49c-49f6-b103-01164828d6fb" />
 
-Create a simple flow that uses the **Create App Task** activity with the following inputs:
-- `applicantName`: "John Doe"
-- `loanAmount`: 50000
-- `creditScore`: 720
-- `loanDocument`: Attach a PDF file directly
+3. In the **Properties** panel of the escalation, update the **Action App** field to point to your deployed coded action app.
+   
+   <img width="3838" height="1963" alt="image" src="https://github.com/user-attachments/assets/afbb81ba-eb5b-4c2d-873b-d8f0f2c0c151" />
 
-### Option 2: Using Studio Desktop
 
-Create an RPA workflow that uses the **Create App Task** activity, pointing to your deployed coded action app and passing the required inputs. These automations can be published to the same tenant and run as unattended jobs in the folder where the app is deployed.
+5. Click **Debug** and enter the input arguments to run the process — this will create an Action Center task backed by your app. [Known Issues](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/README.md#known-issues)
+6. Open Action Center and complete the task to verify the full flow end-to-end.
+
+--- OR ---
+
+Create the task using an RPA workflow in **Studio Desktop** that uses the **Create App Task** activity, pointing to your deployed coded action app and passing the required inputs. These automations can be published to the same tenant and run as unattended jobs in the folder where the app is deployed.
+
+<img width="3838" height="1875" alt="Screenshot 2026-03-10 182414" src="https://github.com/user-attachments/assets/5c72d051-bb7c-4cb4-a23a-2751ffda3e69" />
 
 ---
 
 ## Expected Results
 
-When the app loads inside Action Center (or locally via the dev server pointed at a live task):
+When the app loads inside Action Center:
 
 1. **Review Application tab** — Displays the applicant name, loan amount, and credit score from the task inputs (read-only). The reviewer fills in the **Risk Factor** (integer 0–10, required) and optional **Reviewer Comments**, then clicks **Accept** or **Reject** to complete the task.
 
@@ -166,9 +168,4 @@ This template demonstrates the recommended approach for handling direct file att
 3. **Authentication**: Handle both authenticated and non-authenticated file access patterns
 4. **Blob Management**: Properly create and cleanup blob URLs for in-browser file display
 5. **Download Support**: Provide download functionality using the file's original name
-
-The key code for file handling is in `Form.tsx` around lines 77-89, showing how to:
-- Get attachment metadata using the attachment service
-- Handle authenticated vs. non-authenticated file access
-- Create blob URLs for secure file display
-- Clean up resources properly
+6. 
