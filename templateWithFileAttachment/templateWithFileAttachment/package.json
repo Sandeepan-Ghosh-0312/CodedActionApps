@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@uipath/uipath-typescript": "file:../../uipath-uipath-typescript-1.2.1.tgz",
+    "@uipath/uipath-typescript": "1.3.2",
     "@uipath/uipath-ts-coded-action-apps": "file:../../uipath-uipath-ts-coded-action-apps-1.0.0-beta.1.tgz",
     "buffer": "^6.0.3",
     "pdfjs-dist": "5.4.296",
