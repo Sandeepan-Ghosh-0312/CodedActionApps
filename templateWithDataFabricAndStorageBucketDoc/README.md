@@ -14,7 +14,7 @@ A UiPath Coded Action App template for **Loan Application Review**. Reviewers ca
         - `OR.Administration.Read` (for storage buckets)
         - `OR.Users` (for Data Fabric folder entity reads)
         - `DataFabric.Data.Read` (for Data Fabric folder entity reads)
-    - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (Please add this manually now, will be done automatically soon)
+    - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (This gets added automatically when your app is deployed, in case it does not please add it manually)
   - A **Data Fabric entity** containing loan history records (fields: `loanType`, `amount`, `processingDate`, `status`, `duration`). Import this [entity schema](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/templateWithDataFabricAndStorageBucketDoc/DataFabricEntitySchema.json) directly in Data Fabric (replace folderId with your app folderKey) and add data records.
   - A **Storage Bucket** accessible from the folder where the action task will run with the document present
 - Install the [uipath-uipath-ts-cli-1.0.0-beta.10](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/uipath-uipath-ts-cli-1.0.0-beta.10.tgz) package.

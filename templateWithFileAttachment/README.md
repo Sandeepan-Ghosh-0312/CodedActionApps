@@ -14,7 +14,7 @@ This template demonstrates how to handle direct file attachments in coded action
   - A non-confidential **External Application** (OAuth client) registered with the following:
     - Scopes:
         - `OR.Folders.Read` (for file attachments)
-    - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (This gets added automatically when app is deployed, in case it does not please add it manually)
+    - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (This gets added automatically when your app is deployed, in case it does not please add it manually)
 - Install the [uipath-uipath-ts-cli-1.0.0-beta.10](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/uipath-uipath-ts-cli-1.0.0-beta.10.tgz) package.
   
   ```bash
