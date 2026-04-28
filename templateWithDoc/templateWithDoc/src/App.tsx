@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Form from './components/Form';
 import './App.css';
 import themeTogglerIcon from './assets/themeToggler.png';
@@ -23,7 +24,9 @@ function App() {
         <img src={themeTogglerIcon} alt="Toggle theme" width="20" height="20" />
       </button>
       <div className="container">
-        <Form onInitTheme={setIsDark} />
+        <Routes>
+          <Route path="/" element={<Form onInitTheme={setIsDark} />} />
+        </Routes>
       </div>
     </div>
   );
