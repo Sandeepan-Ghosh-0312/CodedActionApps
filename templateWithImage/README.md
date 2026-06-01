@@ -33,7 +33,7 @@ Build and deploy using the [`UiPath CLI`](https://uipath.github.io/uipath-typesc
 uip login
 npm run build
 uip codedapp pack dist -n <appName> --version 1.0.0
-uip codedapp publish
+uip codedapp publish --type Action
 uip codedapp deploy
 ```
 
