@@ -1,11 +1,11 @@
 import { BucketService } from '@uipath/uipath-typescript/buckets';
 import { UiPath } from '@uipath/uipath-typescript/core';
 import { Entities } from '@uipath/uipath-typescript/entities';
-import { CodedActionAppsService } from '@uipath/uipath-ts-coded-action-apps';
+import { CodedActionAppService } from '@uipath/coded-action-app';
 
 let sdk = new UiPath();
 
-let codedActionAppsService = new CodedActionAppsService();
+let codedActionAppsService = new CodedActionAppService();
 
 let entityService = new Entities(sdk);
 

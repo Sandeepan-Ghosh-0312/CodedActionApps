@@ -15,17 +15,11 @@ This template demonstrates how to handle direct file attachments in coded action
     - Scopes:
         - `OR.Folders.Read` (for file attachments)
     - Redirect URI `https://cloud.uipath.com/<orgId>/<tenantId>/actions_` (This gets added automatically when your app is deployed, in case it does not please add it manually)
-- Install the [uipath-uipath-ts-cli-1.0.0-beta.10](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/uipath-uipath-ts-cli-1.0.0-beta.10.tgz) package.
+- Install [UiPath CLI](https://github.com/UiPath/cli#installation)
   
   ```bash
-  npm i -g <pathToThisPackage>
+  npm i -g @uipath/cli
   ```
-  Verify the package has been correctly installed
-  
-  ```bash
-  uipath --version
-  ```
-  The output of the above command should be `uipath-ts-cli version 1.0.0-beta.10`
 
 ---
 
@@ -56,28 +50,17 @@ orgName, tenantName, baseUrl and redirectUri can be left as empty strings here. 
 - **`clientId`** — the App ID of your registered External Application in UiPath Cloud
 - **`scope`** - the scopes required by the app. This must be a subset of the scopes granted to the external client above.
 
-### 3. Update the app routing name
+### 3. Deploy to UiPath Cloud
 
-In `vite.config.ts`, update the `base` field to match the routing name of your deployed app:
-
-```ts
-base: "/your-app-routing-name"
-```
-
-This must match the name used when packaging and deploying (`uipath pack ./dist --name <appName>`). If they don't match the app will fail to load in Action Center. For already deployed apps, you can check the routing name of your app in Orchestrator Apps section.
-
-### 4. Deploy to UiPath Cloud
-
-Build and deploy using the `uipath-ts-cli`:
+Build and deploy using the [`UiPath CLI`](https://uipath.github.io/uipath-typescript/coded-apps/getting-started/#deploy):
 
 ```bash
+uip login
 npm run build
-uipath pack ./dist --name <appName> --version <version>
-uipath publish --type Action
-uipath deploy
+uip codedapp pack dist -n <appName> --version 1.0.0
+uip codedapp publish
+uip codedapp deploy
 ```
-
-If there are any failures in `uipath deploy` command, check the error message for the root cause. If there are failures due to non-unique or incorrect routing names, please use a different app name and restart.
 
 ---
 
@@ -130,12 +113,12 @@ This template differs from the `templateWithDataFabricAndStorageBucketDoc` in th
    <img width="3839" height="1952" alt="Screenshot 2026-04-27 024249" src="https://github.com/user-attachments/assets/60ebf5c7-e094-450d-9d41-559209e3284b" />
 
 
-5. Click **Debug** and enter the input arguments to run the process — this will create an Action Center task backed by your app. [Known Issues](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/README.md#known-issues)
-6. Open Action Center and complete the task to verify the full flow end-to-end.
+4. Click **Debug** and enter the input arguments to run the process — this will create an Action Center task backed by your app.
+5. Open Action Center and complete the task to verify the full flow end-to-end.
 
 --- OR ---
 
-Create the task using an RPA workflow in **Studio Desktop** that uses the **Create App Task** activity, pointing to your deployed coded action app and passing the required inputs. These automations can be published to the same tenant and run as unattended jobs in the folder where the app is deployed.
+Create the task using an RPA workflow in **Studio Desktop** that uses the **Create App Task** activity, pointing to your deployed coded action app and passing the required inputs.
 
 <img width="3838" height="1875" alt="Screenshot 2026-03-10 182414" src="https://github.com/user-attachments/assets/5c72d051-bb7c-4cb4-a23a-2751ffda3e69" />
 

@@ -1,5 +1,5 @@
-import { CodedActionApps } from '@uipath/uipath-ts-coded-action-apps';
+import { CodedActionApp } from '@uipath/coded-action-app';
 
-const codedActionApps = new CodedActionApps();
+const codedActionApps = new CodedActionApp();
 
 export default codedActionApps;
