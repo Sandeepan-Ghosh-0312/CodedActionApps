@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, ChangeEvent, KeyboardEvent } from 'react';
 import './Form.css';
-import { Theme, MessageSeverity } from '@uipath/uipath-ts-coded-action-apps';
+import { Theme, MessageSeverity } from '@uipath/coded-action-app';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import companyLogo  from '../assets/react.svg'

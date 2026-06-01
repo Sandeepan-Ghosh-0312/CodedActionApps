@@ -1,7 +1,7 @@
 import { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
 import './Form.css';
 import codedActionApps from '../uipath';
-import { Theme, MessageSeverity } from '@uipath/uipath-ts-coded-action-apps';
+import { Theme, MessageSeverity } from '@uipath/coded-action-app';
 import companyLogo  from '../assets/react.svg'
 import loanImage from '../assets/loanApplication.png';
 
