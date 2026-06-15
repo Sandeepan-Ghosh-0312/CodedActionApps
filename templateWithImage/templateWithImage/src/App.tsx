@@ -1,33 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Form from './components/Form';
 import './App.css';
-import themeTogglerIcon from './assets/themeToggler.png';
 
 function App() {
-  const [isDark, setIsDark] = useState(false);
+  const [darkTheme, setDarkTheme] = useState(false);
 
+  // Seed from the task theme (Action Center) on first load.
+  const handleInitTheme = useCallback((isDark: boolean) => {
+    setDarkTheme(isDark);
+  }, []);
+
+  // User-driven toggle.
+  const toggleTheme = useCallback(() => setDarkTheme((d) => !d), []);
+
+  // Keep <body> in sync whether the change came from the task or the toggle.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark(prev => !prev);
+    document.body.className = darkTheme ? 'dark' : 'light';
+  }, [darkTheme]);
 
   return (
-    <div className="app">
-      <button
-        type="button"
-        className="theme-toggle-button"
-        onClick={toggleTheme}
-        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      >
-        <img src={themeTogglerIcon} alt="Toggle theme" width="20" height="20" />
-      </button>
-      <div className="container">
-        <Routes>
-          <Route path="/" element={<Form onInitTheme={setIsDark} />} />
-        </Routes>
-      </div>
+    <div className={`app-shell ${darkTheme ? 'dark' : 'light'}`}>
+      <Routes>
+        <Route
+          path="/"
+          element={<Form onInitTheme={handleInitTheme} darkTheme={darkTheme} onToggleTheme={toggleTheme} />}
+        />
+      </Routes>
     </div>
   );
 }
