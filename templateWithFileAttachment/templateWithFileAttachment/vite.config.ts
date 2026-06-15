@@ -1,10 +1,8 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), '');
-
+export default defineConfig(() => {
   return {
     plugins: [
       react(),
@@ -16,12 +14,9 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
-    define: {
-      'import.meta.env.UIPATH_BASE_URL': JSON.stringify(env.UIPATH_BASE_URL || 'https://alpha.uipath.com'),
-      'import.meta.env.UIPATH_ORG_NAME': JSON.stringify(env.UIPATH_ORG_NAME || ''),
-      'import.meta.env.UIPATH_TENANT_NAME': JSON.stringify(env.UIPATH_TENANT_NAME || ''),
-      'import.meta.env.UIPATH_BEARER_TOKEN': JSON.stringify(env.UIPATH_BEARER_TOKEN || ''),
+    optimizeDeps: {
+      include: ['@uipath/uipath-typescript'],
     },
-    base: "./", // Use relative paths for assets, base is dynamically injected using getAppBase()
+    base: './', // Use relative paths for assets, base is dynamically injected using getAppBase()
   };
 });

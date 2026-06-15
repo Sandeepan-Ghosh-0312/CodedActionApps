@@ -1,4 +1,4 @@
 {
-  "scope": "OR.Folders.Read",
+  "scope": "OR.Buckets.Read",
   "clientId": "<external-application-clientId>"
 }
