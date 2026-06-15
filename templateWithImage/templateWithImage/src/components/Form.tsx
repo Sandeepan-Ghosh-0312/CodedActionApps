@@ -3,11 +3,13 @@ import './Form.css';
 import codedActionApps from '../uipath';
 import { Theme, MessageSeverity } from '@uipath/coded-action-app';
 import loanImage from '../assets/loanApplication.png';
+import documentIcon from '../assets/documentIcon.png';
+import themeToggler from '../assets/themeToggler.png';
 
 interface FormData {
   applicantName: string;
-  loanAmount: string;
-  creditScore: string;
+  loanAmount: string | number;
+  creditScore: string | number;
   riskFactor: string;
   reviewerComments: string;
 }
@@ -37,7 +39,15 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   useEffect(() => {
     codedActionApps.getTask().then((task) => {
       if (task.data) {
-        setFormData(task.data as FormData);
+        // Keep only the fields this form owns; ignore any extra properties on the task data.
+        const data = task.data as Partial<FormData>;
+        setFormData({
+          applicantName: data.applicantName ?? '',
+          loanAmount: data.loanAmount ?? '',
+          creditScore: data.creditScore ?? '',
+          riskFactor: data.riskFactor ?? '',
+          reviewerComments: data.reviewerComments ?? '',
+        });
       }
       setIsReadOnly(task.isReadOnly);
       onInitTheme(isDarkTheme(task.theme));
@@ -66,15 +76,23 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     }
   };
 
-  const handleApprove = async () => {
-    await codedActionApps.completeTask('Approve', formData);
+  // Complete the task with only the fields this form owns, so any extra
+  // properties present in the incoming task data are not echoed back.
+  const completeWith = (outcome: 'Approve' | 'Reject') => {
+    const { applicantName, loanAmount, creditScore, riskFactor, reviewerComments } = formData;
+    return codedActionApps.completeTask(outcome, {
+      applicantName,
+      loanAmount,
+      creditScore,
+      riskFactor,
+      reviewerComments,
+    });
   };
 
-  const handleReject = async () => {
-    await codedActionApps.completeTask('Reject', formData);
-  };
+  const handleApprove = () => completeWith('Approve');
+  const handleReject = () => completeWith('Reject');
 
-  const formatCurrency = (value: string) => {
+  const formatCurrency = (value: string | number) => {
     const n = Number(value);
     if (!value || Number.isNaN(n)) return value || '';
     return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
@@ -88,11 +106,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     <div className="review-app">
       <header className="review-header">
         <div className="review-header__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <path d="M14 2v6h6" />
-            <path d="M9 15l2 2 4-4" />
-          </svg>
+          <img src={documentIcon} alt="" width={32} height={32} style={{ borderRadius: 8 }} />
         </div>
         <div className="review-header__titles">
           <h1 className="review-header__title">Loan Application Review</h1>
@@ -109,16 +123,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
             aria-label={darkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
             title={darkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {darkTheme ? (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
+            <img src={themeToggler} alt="" width={20} height={20} />
           </button>
         </div>
       </header>

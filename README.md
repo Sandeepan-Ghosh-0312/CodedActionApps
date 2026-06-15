@@ -28,7 +28,8 @@ A collection of starter templates and AI-assisted tooling for building **UiPath 
 |---|---|
 | [templateWithImage](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithImage) | Coded Action app with image attachments |
 | [templateWithDoc](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithDoc) | Coded Action app with document handling |
-| [templateWithDataFabricAndStorageBucketDoc](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithDataFabricAndStorageBucketDoc) | Coded Action app with Data Fabric entities and Storage Bucket documents |
+| [templateWithDataFabric](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithDataFabric) | Coded Action app backed by a Data Fabric entity — fetches a record by applicant name, updates risk factor / reviewer comments / approval, and views the Loan Document attachment |
+| [templateWithStorageBucket](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithStorageBucket) | Coded Action app with Storage Bucket documents |
 | [templateWithFileAttachment](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithFileAttachment) | Coded Action app with direct file attachments |
 
 ---

@@ -5,26 +5,19 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import { Document, Page, pdfjs } from 'react-pdf';
 import uipath from '../uipath';
+import documentIcon from '../assets/documentIcon.png';
+import themeToggler from '../assets/themeToggler.png';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface FormData {
   applicantName: string;
-  loanAmount: string;
-  creditScore: string;
+  loanAmount: string | number;
+  creditScore: string | number;
   riskFactor: string;
   reviewerComments: string;
   loanDocumentStorageBucket: string;
   loanDocumentFilePath: string;
-}
-
-interface LoanHistory {
-  id: number;
-  loanType: string;
-  amount: number;
-  processingDate: string;
-  status: string;
-  duration: string;
 }
 
 interface FormProps {
@@ -33,7 +26,7 @@ interface FormProps {
   onToggleTheme: () => void;
 }
 
-type TabType = 'review' | 'applicant' | 'document';
+type TabType = 'review' | 'document';
 
 const isDarkTheme = (theme: Theme): boolean =>
   theme === Theme.Dark || theme === Theme.DarkHighContrast;
@@ -51,9 +44,6 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     loanDocumentFilePath: '',
 
   });
-  const [loanHistory, setLoanHistory] = useState<LoanHistory[]>([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [hasLoadedHistory, setHasLoadedHistory] = useState(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
@@ -68,52 +58,23 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   useEffect(() => {
     uipath.codedActionAppsService.getTask().then((task) => {
       if (task.data) {
-        setFormData(task.data as FormData);
+        // Keep only the fields this form owns; ignore any extra properties on the task data.
+        const data = task.data as Partial<FormData>;
+        setFormData({
+          applicantName: data.applicantName ?? '',
+          loanAmount: data.loanAmount ?? '',
+          creditScore: data.creditScore ?? '',
+          riskFactor: data.riskFactor ?? '',
+          reviewerComments: data.reviewerComments ?? '',
+          loanDocumentStorageBucket: data.loanDocumentStorageBucket ?? '',
+          loanDocumentFilePath: data.loanDocumentFilePath ?? '',
+        });
         setFolderId(task.folderId);
       }
       setIsReadOnly(task.isReadOnly);
       onInitTheme(isDarkTheme(task.theme));
     });
   }, [onInitTheme]);
-
-  // Load loan history data only when switching to applicant tab
-  useEffect(() => {
-    if (activeTab === 'applicant' && !hasLoadedHistory && !isLoadingHistory) {
-      const loadLoanHistory = async () => {
-        try {
-          setIsLoadingHistory(true);
-          const response = await uipath.entityService.getAllRecords('529093a4-1fc6-f011-8195-6045bd0240b6', {
-            pageSize: 5,
-            expansionLevel: 1
-          });
-          console.log('Loan history response:', response);
-
-          // Map the response to LoanHistory format
-          if (response && response.items) {
-            const mappedHistory = response.items.map((record: any, index: number) => ({
-              id: index + 1,
-              loanType: record.loanType || record.LoanType || 'N/A',
-              amount: record.amount || record.Amount || 0,
-              processingDate: record.processingDate || record.Date || new Date().toISOString(),
-              status: record.status || record.Status || 'Unknown',
-              duration: record.duration || record.Duration || 'N/A'
-            }));
-            setLoanHistory(mappedHistory);
-          }
-          setHasLoadedHistory(true);
-        } catch (error) {
-          console.error('Error loading loan history:', error);
-          // Set empty array or fallback data on error
-          setLoanHistory([]);
-          setHasLoadedHistory(true);
-        } finally {
-          setIsLoadingHistory(false);
-        }
-      };
-
-      loadLoanHistory();
-    }
-  }, [activeTab, hasLoadedHistory, isLoadingHistory]);
 
   // Load document data only when switching to document tab
   useEffect(() => {
@@ -221,13 +182,31 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     }
   };
 
-  const handleApprove = async () => {
-    await uipath.codedActionAppsService.completeTask('Approve', formData);
+  // Complete the task with only the fields this form owns, so any extra
+  // properties present in the incoming task data are not echoed back.
+  const completeWith = (outcome: 'Approve' | 'Reject') => {
+    const {
+      applicantName,
+      loanAmount,
+      creditScore,
+      riskFactor,
+      reviewerComments,
+      loanDocumentStorageBucket,
+      loanDocumentFilePath,
+    } = formData;
+    return uipath.codedActionAppsService.completeTask(outcome, {
+      applicantName,
+      loanAmount,
+      creditScore,
+      riskFactor,
+      reviewerComments,
+      loanDocumentStorageBucket,
+      loanDocumentFilePath,
+    });
   };
 
-  const handleReject = async () => {
-    await uipath.codedActionAppsService.completeTask('Reject', formData);
-  };
+  const handleApprove = () => completeWith('Approve');
+  const handleReject = () => completeWith('Reject');
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
@@ -237,7 +216,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   const goToPrevPage = () => setPageNumber((p) => Math.max(1, p - 1));
   const goToNextPage = () => setPageNumber((p) => Math.min(numPages, p + 1));
 
-  const formatCurrency = (value: string) => {
+  const formatCurrency = (value: string | number) => {
     const n = Number(value);
     if (!value || Number.isNaN(n)) return value || '';
     return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
@@ -251,11 +230,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     <div className="review-app">
       <header className="review-header">
         <div className="review-header__icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-            <path d="M14 2v6h6" />
-            <path d="M9 15l2 2 4-4" />
-          </svg>
+          <img src={documentIcon} alt="" width={32} height={32} style={{ borderRadius: 8 }} />
         </div>
         <div className="review-header__titles">
           <h1 className="review-header__title">Loan Application Review</h1>
@@ -272,16 +247,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
             aria-label={darkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
             title={darkTheme ? 'Switch to light mode' : 'Switch to dark mode'}
           >
-            {darkTheme ? (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="4" />
-                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-              </svg>
-            )}
+            <img src={themeToggler} alt="" width={20} height={20} />
           </button>
         </div>
       </header>
@@ -293,13 +259,6 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
           onClick={() => setActiveTab('review')}
         >
           Review Form
-        </button>
-        <button
-          type="button"
-          className={`review-tab ${activeTab === 'applicant' ? 'review-tab--active' : ''}`}
-          onClick={() => setActiveTab('applicant')}
-        >
-          Applicant History
         </button>
         <button
           type="button"
@@ -366,49 +325,6 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
               </div>
             </section>
           </>
-        )}
-
-        {activeTab === 'applicant' && (
-          <section className="form-section">
-            <h2 className="form-title">Loan History</h2>
-            {isLoadingHistory ? (
-              <div className="loading-message">
-                <div className="spinner"></div>
-                Loading loan history...
-              </div>
-            ) : loanHistory.length === 0 ? (
-              <div className="empty-message">No loan history available in Data Fabric</div>
-            ) : (
-              <div className="loan-history-grid">
-                <table className="loan-history-table">
-                  <thead>
-                    <tr>
-                      <th>Loan Type</th>
-                      <th>Amount</th>
-                      <th>Processing Date</th>
-                      <th>Duration</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {loanHistory.map((loan) => (
-                      <tr key={loan.id}>
-                        <td>{loan.loanType}</td>
-                        <td>{loan.amount.toLocaleString()}</td>
-                        <td>{loan.processingDate}</td>
-                        <td>{loan.duration}</td>
-                        <td>
-                          <span className={`status-badge ${loan.status.toLowerCase()}`}>
-                            {loan.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
         )}
 
         {activeTab === 'document' && (
