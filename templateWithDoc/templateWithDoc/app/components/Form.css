@@ -510,10 +510,6 @@
   transition: opacity 0.2s ease;
 }
 
-.pdf-page--rendering {
-  opacity: 0.6;
-}
-
 .pdf-loading {
   display: flex;
   flex-direction: column;

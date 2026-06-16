@@ -1,0 +1,5 @@
+# React Router framework mode generated types
+.react-router/
+
+# React Router raw build output (flattened into dist/ by the build script)
+build/

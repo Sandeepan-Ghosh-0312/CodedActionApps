@@ -30,9 +30,23 @@ type TabType = 'review' | 'document';
 const isDarkTheme = (theme: Theme): boolean =>
   theme === Theme.Dark || theme === Theme.DarkHighContrast;
 
+// Prevent decimal point (.) and 'e' from being entered in the Risk Factor field
+const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  if (e.currentTarget.name === 'riskFactor' && (e.key === '.' || e.key === 'e' || e.key === 'E')) {
+    e.preventDefault();
+  }
+};
+
+const formatCurrency = (value: string | number) => {
+  const n = Number(value);
+  if (!value || Number.isNaN(n)) return value || '';
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
+};
+
 const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('review');
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     applicantName: '',
     loanAmount: '',
@@ -43,24 +57,33 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.0);
-  const [pageRendering, setPageRendering] = useState(false);
 
   useEffect(() => {
-    codedActionApps.getTask().then((task) => {
-      if (task.data) {
-        // Keep only the fields this form owns; ignore any extra properties on the task data.
-        const data = task.data as Partial<FormData>;
-        setFormData({
-          applicantName: data.applicantName ?? '',
-          loanAmount: data.loanAmount ?? '',
-          creditScore: data.creditScore ?? '',
-          riskFactor: data.riskFactor ?? '',
-          reviewerComments: data.reviewerComments ?? '',
-        });
+    const init = async () => {
+      try {
+        const task = await codedActionApps.getTask();
+        if (task.data) {
+          // Keep only the fields this form owns; ignore any extra properties on the task data.
+          const data = task.data as Partial<FormData>;
+          setFormData({
+            applicantName: data.applicantName ?? '',
+            loanAmount: data.loanAmount ?? '',
+            creditScore: data.creditScore ?? '',
+            riskFactor: data.riskFactor ?? '',
+            reviewerComments: data.reviewerComments ?? '',
+          });
+        }
+        setIsReadOnly(task.isReadOnly);
+        onInitTheme(isDarkTheme(task.theme));
+      } catch (err: unknown) {
+        codedActionApps.showMessage(
+          err instanceof Error ? err.message : 'Failed to load the task.',
+          MessageSeverity.Error,
+        );
       }
-      setIsReadOnly(task.isReadOnly);
-      onInitTheme(isDarkTheme(task.theme));
-    });
+    };
+
+    init();
   }, [onInitTheme]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -78,13 +101,6 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    // Prevent decimal point (.) and 'e' from being entered in Risk Factor field
-    if (e.currentTarget.name === 'riskFactor' && (e.key === '.' || e.key === 'e' || e.key === 'E')) {
-      e.preventDefault();
-    }
-  };
-
   // Complete the task with only the fields this form owns, so any extra
   // properties present in the incoming task data are not echoed back.
   const completeWith = (outcome: 'Approve' | 'Reject') => {
@@ -98,8 +114,22 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     });
   };
 
-  const handleApprove = () => completeWith('Approve');
-  const handleReject = () => completeWith('Reject');
+  const submitDecision = async (outcome: 'Approve' | 'Reject') => {
+    try {
+      setIsSubmitting(true);
+      await completeWith(outcome);
+    } catch (err: unknown) {
+      codedActionApps.showMessage(
+        err instanceof Error ? err.message : 'Failed to complete task.',
+        MessageSeverity.Error,
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleApprove = () => submitDecision('Approve');
+  const handleReject = () => submitDecision('Reject');
 
   const zoomIn  = () => setScale((s) => Math.min(2.5, parseFloat((s + 0.2).toFixed(1))));
   const zoomOut = () => setScale((s) => Math.max(0.4, parseFloat((s - 0.2).toFixed(1))));
@@ -122,15 +152,9 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   const goToPrevPage = () => setPageNumber((p) => Math.max(1, p - 1));
   const goToNextPage = () => setPageNumber((p) => Math.min(numPages, p + 1));
 
-  const formatCurrency = (value: string | number) => {
-    const n = Number(value);
-    if (!value || Number.isNaN(n)) return value || '';
-    return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n);
-  };
-
   const riskFactorNum = Number(formData.riskFactor);
   const isRiskFactorValid = !!formData.riskFactor && riskFactorNum >= 0 && riskFactorNum <= 10;
-  const isFormValid = !isReadOnly && isRiskFactorValid;
+  const isFormValid = !isReadOnly && !isSubmitting && isRiskFactorValid;
 
   return (
     <div className="review-app">
@@ -270,10 +294,8 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
                   scale={scale}
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
-                  onRenderSuccess={() => setPageRendering(false)}
-                  onRenderError={() => setPageRendering(false)}
                   loading={<div className="pdf-page-loading">Rendering page…</div>}
-                  className={`pdf-page${pageRendering ? ' pdf-page--rendering' : ''}`}
+                  className="pdf-page"
                 />
               </Document>
             </div>

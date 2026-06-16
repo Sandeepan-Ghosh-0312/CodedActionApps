@@ -1,6 +1,6 @@
-# templateWithDoc
+# TemplateWithDoc
 
-A UiPath Coded Action App template for **Loan Application Review**. Reviewers can assess an applicant's details and view a bundled sample PDF document, then complete the task with an Accept or Reject decision.
+A UiPath Coded Action App template for **Loan Application Review**. Reviewers can assess an applicant's details and view a bundled sample PDF document, then complete the task with an Approve or Reject decision.
 
 ---
 
@@ -37,6 +37,8 @@ uip codedapp publish --type Action
 uip codedapp deploy
 ```
 
+> This app uses **React Router v7 in framework mode with `ssr: false`** (SPA mode), configured in `react-router.config.ts`. Routes are declared in `app/routes.ts`. `npm run build` produces React Router's client output and flattens it into a static `dist/` (with `index.html` at the root) so it can be packed directly with `uip codedapp pack dist`.
+
 ---
 
 ## Action Schema
@@ -62,20 +64,21 @@ The action schema that drives this app expects the following inputs and produces
 
 | Outcome | Triggered by |
 |---|---|
-| `Approve` | Clicking the **Accept** button |
+| `Approve` | Clicking the **Approve** button |
 | `Reject` | Clicking the **Reject** button |
 
 ---
 
 ## Viewing the coded action app in Action Center
 
-1. Import the [TestTemplateWithImageAndDoc.uis](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/blob/main/templateWithDoc/TestTemplateWithImageAndDoc.uis) solution in **Studio Web**.
+1. Import the [Template With Image and Doc.uis](./Template%20With%20Image%20and%20Doc.uis) solution in **Studio Web**.
    
    <img width="3836" height="1977" alt="Screenshot 2026-03-10 174451" src="https://github.com/user-attachments/assets/ffdb38cf-2122-4e84-aeeb-49de0b718c2d" />
 
-2. In the **Properties** panel of the escalation, update the **Action App** field to point to your deployed coded action app.
+2. In the **Properties** panel of the User Task node, update the **Action App** field to point to your deployed coded action app.
    
-   <img width="3838" height="1956" alt="Screenshot 2026-03-10 174130" src="https://github.com/user-attachments/assets/f8a79b4f-5d39-4994-b3f4-7db74280369d" />
+   <img width="3832" height="1943" alt="Screenshot 2026-06-16 030652" src="https://github.com/user-attachments/assets/29bc562b-ba91-481c-9ef4-7d93a1178d4c" />
+
 
 3. Click **Debug** to run the process — this will create an Action Center task backed by your app.
 4. Open Action Center and complete the task to verify the full flow end-to-end.
@@ -93,18 +96,21 @@ Create the task using an RPA workflow in **Studio Desktop** that uses the **Crea
 
 When the app loads inside Action Center:
 
-1. **Review Application tab** — Displays the applicant name, loan amount, and credit score from the task inputs (read-only). The reviewer fills in the **Risk Factor** (integer 0–10, required) and optional **Reviewer Comments**, then clicks **Accept** or **Reject** to complete the task.
+1. **Review Form tab** — Displays the applicant name, loan amount, and credit score from the task inputs (read-only). The reviewer fills in the **Risk Factor** (integer 0–10, required) and optional **Reviewer Comments**, then clicks **Approve** or **Reject** to complete the task.
 
-2. **Attachments tab** — Renders a bundled sample PDF inline with:
+2. **Document tab** — Renders a bundled sample PDF inline with:
    - Page navigation (previous / next)
-   - Zoom controls (40% – 250%)
+   - Zoom controls
    - A **Download** button
 
-3. **Theme** — The app initialises in light or dark mode based on the Action Center theme preference and supports toggling via the button in the top-right corner.
+3. **Theme** — The app initializes in light or dark mode based on the Action Center theme preference and supports toggling via the button in the top-right corner.
 
-4. **Read-only mode** — If the task is already completed or the current user does not have edit access, all input fields are disabled and the Accept / Reject buttons are greyed out.
+4. **Read-only mode** — If the task is already completed or the current user does not have edit access, all input fields are disabled and the Approve / Reject buttons are greyed out.
 
 
 
-https://github.com/user-attachments/assets/db358b48-9d18-4af0-ac69-a5aef441e1f1
+
+https://github.com/user-attachments/assets/afbfdbfe-d049-4309-bd21-3ae71a4c59e5
+
+
 

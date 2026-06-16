@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "react-router dev",
+    "build": "react-router build && node scripts/flatten-build.mjs",
+    "typecheck": "react-router typegen && tsc -p tsconfig.json && tsc -p tsconfig.node.json",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -17,16 +18,17 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-pdf": "^10.2.0",
-    "react-router-dom": "^7.14.2"
+    "react-router": "^7.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
+    "@react-router/dev": "^7.17.0",
+    "@react-router/node": "^7.17.0",
+    "@types/node": "^25.9.3",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@types/react-router-dom": "^5.3.3",
     "@typescript-eslint/eslint-plugin": "^8.46.4",
     "@typescript-eslint/parser": "^8.46.4",
-    "@vitejs/plugin-react": "^5.1.0",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^5.2.0",

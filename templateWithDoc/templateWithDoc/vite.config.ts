@@ -1,11 +1,13 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { reactRouter } from '@react-router/dev/vite';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 
 export default defineConfig(() => {
   return {
     plugins: [
-      react(),
+      // The React Router plugin already wires in the React/JSX transform —
+      // do not also add @vitejs/plugin-react or React will be processed twice.
+      reactRouter(),
       nodePolyfills({
         globals: {
           Buffer: true,

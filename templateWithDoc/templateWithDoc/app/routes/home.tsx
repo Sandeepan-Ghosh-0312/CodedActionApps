@@ -1,9 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
-import Form from './components/Form';
-import './App.css';
+import Form from '../components/Form';
+import '../review.css';
 
-function App() {
+export default function Home() {
   const [darkTheme, setDarkTheme] = useState(false);
 
   // Seed from the task theme (Action Center) on first load.
@@ -21,14 +20,7 @@ function App() {
 
   return (
     <div className={`app-shell ${darkTheme ? 'dark' : 'light'}`}>
-      <Routes>
-        <Route
-          path="/"
-          element={<Form onInitTheme={handleInitTheme} darkTheme={darkTheme} onToggleTheme={toggleTheme} />}
-        />
-      </Routes>
+      <Form onInitTheme={handleInitTheme} darkTheme={darkTheme} onToggleTheme={toggleTheme} />
     </div>
   );
 }
-
-export default App;
