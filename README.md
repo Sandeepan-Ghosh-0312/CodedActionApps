@@ -1,3 +1,7 @@
+# Announcement
+
+All samples have now been added to [UiPath-Typescript repo](https://github.com/UiPath/uipath-typescript/tree/main/samples/coded-action-apps)
+
 # CodedActionApps
 
 A collection of starter templates and AI-assisted tooling for building **UiPath Coded Action Apps** — React + TypeScript frontend applications wired to UiPath Action Center.
