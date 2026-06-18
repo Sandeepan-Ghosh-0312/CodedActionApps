@@ -10,18 +10,14 @@ import themeToggler from '../assets/themeToggler.png';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-interface LoanDocument {
-  ID: string;
-  FullName: string;
-}
-
 interface FormData {
   applicantName: string;
   loanAmount: string | number;
   creditScore: string | number;
   riskFactor: string;
   reviewerComments: string;
-  loanDocument: LoanDocument | null;
+  loanDocumentStorageBucket: string;
+  loanDocumentFilePath: string;
 }
 
 interface FormProps {
@@ -44,7 +40,9 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
     creditScore: '',
     riskFactor: '',
     reviewerComments: '',
-    loanDocument: null,
+    loanDocumentStorageBucket: '',
+    loanDocumentFilePath: '',
+
   });
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState(1);
@@ -54,6 +52,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   const [documentError, setDocumentError] = useState<string | null>(null);
   const [scale, setScale] = useState(1.0);
   const [pageRendering, setPageRendering] = useState(false);
+  const [folderId, setFolderId] = useState<any>(null);
   const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -67,10 +66,10 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
           creditScore: data.creditScore ?? '',
           riskFactor: data.riskFactor ?? '',
           reviewerComments: data.reviewerComments ?? '',
-          loanDocument: data.loanDocument
-            ? { ID: data.loanDocument.ID, FullName: data.loanDocument.FullName }
-            : null,
+          loanDocumentStorageBucket: data.loanDocumentStorageBucket ?? '',
+          loanDocumentFilePath: data.loanDocumentFilePath ?? '',
         });
+        setFolderId(task.folderId);
       }
       setIsReadOnly(task.isReadOnly);
       onInitTheme(isDarkTheme(task.theme));
@@ -80,20 +79,29 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
   // Load document data only when switching to document tab
   useEffect(() => {
     if (activeTab === 'document' && !hasLoadedDocument && !isLoadingDocument && formData) {
-      if (!formData.loanDocument?.ID) return;
+      if (!formData.loanDocumentStorageBucket || !folderId || !formData.loanDocumentFilePath) return;
       let cancelled = false;
 
       const loadDocument = async () => {
         try {
           setIsLoadingDocument(true);
           setDocumentError(null);
+          const bucketsResponse = await uipath.bucketService.getAll({
+            filter: `name eq '${formData.loanDocumentStorageBucket}'`
+          });
 
-          const attachment = await uipath.attachmentService.getById(formData.loanDocument!.ID);
-          const uriResponse = attachment.blobFileAccess;
+          const bucket = bucketsResponse.items.find((b: any) => b.name === formData.loanDocumentStorageBucket);
+          if (!bucket) throw new Error(`Bucket "${formData.loanDocumentStorageBucket}" not found.`);
+
+          const uriResponse = await uipath.bucketService.getReadUri({
+            bucketId: bucket.id,
+            folderId: folderId,
+            path: formData.loanDocumentFilePath
+          });
 
           let url: string;
-          if (uriResponse.requiresAuth) {
-            const response = await fetch(uriResponse.uri, { headers: uriResponse.headers });
+          if ((uriResponse as any).requiresAuth) {
+            const response = await fetch(uriResponse.uri, { headers: (uriResponse as any).headers });
             if (!response.ok) throw new Error(`Download failed (HTTP ${response.status}).`);
             const blob = await response.blob();
             url = URL.createObjectURL(blob);
@@ -123,7 +131,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, hasLoadedDocument, formData]);
+  }, [activeTab, hasLoadedDocument, formData, folderId]);
 
 
   const zoomIn  = () => setScale((s) => Math.min(2.5, parseFloat((s + 0.2).toFixed(1))));
@@ -132,7 +140,7 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
 
   const handleDownload = async () => {
     if (!documentUrl) return;
-    const fileName = formData.loanDocument?.FullName || 'document.pdf';
+    const fileName = formData.loanDocumentFilePath.split('/').pop() || 'document.pdf';
     let blobUrl: string;
     let tempBlob = false;
     if (documentUrl.startsWith('blob:')) {
@@ -183,7 +191,8 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
       creditScore,
       riskFactor,
       reviewerComments,
-      loanDocument,
+      loanDocumentStorageBucket,
+      loanDocumentFilePath,
     } = formData;
     return uipath.codedActionAppsService.completeTask(outcome, {
       applicantName,
@@ -191,7 +200,8 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
       creditScore,
       riskFactor,
       reviewerComments,
-      loanDocument,
+      loanDocumentStorageBucket,
+      loanDocumentFilePath,
     });
   };
 
@@ -376,9 +386,9 @@ const Form = ({ onInitTheme, darkTheme, onToggleTheme }: FormProps) => {
             ) : (
               <div className="pdf-shell--center">
                 <p className="pdf-empty">
-                  {formData.loanDocument?.ID
+                  {formData.loanDocumentStorageBucket && formData.loanDocumentFilePath
                     ? 'Document will load when task data is available.'
-                    : 'No document attachment provided.'}
+                    : 'No document path provided.'}
                 </p>
               </div>
             )}
