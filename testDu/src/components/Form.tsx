@@ -57,7 +57,6 @@ const Form = ({ onInitTheme }: FormProps) => {
   });
   const [folderId, setFolderId] = useState<number | undefined>(undefined);
   const [vsTheme, setVsTheme] = useState<VsTheme>('light');
-  const [sdkReady, setSdkReady] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -69,13 +68,6 @@ const Form = ({ onInitTheme }: FormProps) => {
       setFolderId(task.folderId);
       setVsTheme(toVsTheme(task.theme));
       onInitTheme(isDarkTheme(task.theme));
-
-      // The Validation Station calls Document Understanding / Storage Bucket
-      // APIs through the SDK, so make sure it is initialized before rendering.
-      if (!uipath.sdk.isInitialized()) {
-        await uipath.sdk.initialize();
-      }
-      setSdkReady(true);
     };
     init();
   }, [onInitTheme]);
@@ -141,8 +133,7 @@ const Form = ({ onInitTheme }: FormProps) => {
         </div>
 
         <div className="tab-content">
-          {activeTab === 'review' && (
-            <div className="tab-panel">
+          <div className="tab-panel" style={{ display: activeTab === 'review' ? undefined : 'none' }}>
               <h2 className="review-heading">Application Details</h2>
 
               <div className="form-group">
@@ -217,21 +208,14 @@ const Form = ({ onInitTheme }: FormProps) => {
                   Complete
                 </button>
               </div>
-            </div>
-          )}
+          </div>
 
-          {activeTab === 'validation' && (
-            <div className="tab-panel">
+          <div className="tab-panel" style={{ display: activeTab === 'validation' ? undefined : 'none' }}>
               <h2>Document Validation</h2>
               <div className="validation-shell">
                 {!formData.loanDocument ? (
                   <div className="validation-shell--center">
                     <p className="validation-empty">No document validation data provided.</p>
-                  </div>
-                ) : !sdkReady ? (
-                  <div className="validation-loading">
-                    <div className="validation-spinner" />
-                    Loading Validation Station…
                   </div>
                 ) : (
                   <ValidationStation
@@ -260,8 +244,7 @@ const Form = ({ onInitTheme }: FormProps) => {
                   Complete
                 </button>
               </div>
-            </div>
-          )}
+          </div>
         </div>
         </div>
       </div>

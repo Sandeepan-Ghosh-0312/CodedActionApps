@@ -1,5 +1,5 @@
 {
-  "scope": "OR.Folders.Read OR.Buckets.Read",
+  "scope": "OR.Tasks OR.Buckets.Read",
   "clientId": "b23b2750-30f2-4176-8f95-318446833a98",
   "orgName": "",
   "tenantName": "",
