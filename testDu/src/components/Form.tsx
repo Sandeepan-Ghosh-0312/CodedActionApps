@@ -5,11 +5,10 @@ import {
   ValidationStation,
   ValidationStationLanguage,
 } from '@uipath/ui-widgets-validation-station';
-import type { DuFramework } from '@uipath/uipath-typescript/document-understanding';
+import type { ContentValidationData } from '@uipath/uipath-typescript/document-understanding';
 import companyLogo from '../assets/react.svg';
 import uipath from '../uipath';
 
-type ContentValidationData = DuFramework.ContentValidationData;
 type VsTheme = 'light' | 'dark' | 'light-hc' | 'dark-hc';
 
 interface FormData {
@@ -92,11 +91,6 @@ const Form = ({ onInitTheme }: FormProps) => {
     if (e.currentTarget.name === 'riskFactor' && (e.key === '.' || e.key === 'e' || e.key === 'E')) {
       e.preventDefault();
     }
-  };
-
-  const handleComplete = async () => {
-    // Complete the task with the current form data as-is (loanDocument included, unchanged).
-    await uipath.codedActionAppsService.completeTask('Complete', formData);
   };
 
   return (
@@ -202,12 +196,6 @@ const Form = ({ onInitTheme }: FormProps) => {
                   readOnly={isReadOnly}
                 />
               </div>
-
-              <div className="form-buttons">
-                <button type="button" className="complete-button" onClick={handleComplete} disabled={isReadOnly}>
-                  Complete
-                </button>
-              </div>
           </div>
 
           <div className="tab-panel" style={{ display: activeTab === 'validation' ? undefined : 'none' }}>
@@ -225,9 +213,10 @@ const Form = ({ onInitTheme }: FormProps) => {
                     theme={vsTheme}
                     language={ValidationStationLanguage.English}
                     isReadonly={isReadOnly}
-                    onSaveComplete={(result) => {
+                    onSubmitComplete={async (result) => {
                       if (result.success) {
                         uipath.codedActionAppsService.showMessage('Validated data saved successfully.', MessageSeverity.Success);
+                        await uipath.codedActionAppsService.completeTask('Complete', formData);
                       } else {
                         uipath.codedActionAppsService.showMessage(
                           `Failed to save validated data: ${result.error}`,
@@ -237,12 +226,6 @@ const Form = ({ onInitTheme }: FormProps) => {
                     }}
                   />
                 )}
-              </div>
-
-              <div className="form-buttons">
-                <button type="button" className="complete-button" onClick={handleComplete} disabled={isReadOnly}>
-                  Complete
-                </button>
               </div>
           </div>
         </div>
