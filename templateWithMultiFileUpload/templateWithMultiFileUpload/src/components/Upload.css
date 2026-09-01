@@ -1,0 +1,331 @@
+/* ---- file counter ------------------------------------------------------- */
+
+.counter {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  white-space: nowrap;
+}
+
+.counter__value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.counter__of {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.counter--full {
+  border-color: var(--warn);
+  color: var(--warn);
+}
+
+/* ---- dropzone ----------------------------------------------------------- */
+
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 20px;
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  text-align: center;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.dropzone--active {
+  border-color: var(--accent);
+  border-style: solid;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface-raised));
+}
+
+.dropzone--disabled {
+  opacity: 0.7;
+}
+
+/* The real input stays out of the layout; the visible button forwards the click to it. */
+.dropzone__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dropzone__lead {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.dropzone__hint {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---- rejection notice --------------------------------------------------- */
+
+.notice {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--surface-raised);
+}
+
+.notice--warn {
+  border-color: var(--warn);
+}
+
+.notice__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.notice__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--warn);
+}
+
+.notice__list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.notice__list li {
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.notice__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notice__reason {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ---- file list ---------------------------------------------------------- */
+
+.files {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.files__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.files__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.files__summary {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.bar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+.files__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.file {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 2px;
+  border-top: 1px solid var(--border);
+}
+
+.file:first-child {
+  border-top: none;
+}
+
+.file__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.file--uploading .file__dot { background: var(--accent); }
+.file--uploaded .file__dot  { background: var(--ok); }
+.file--failed .file__dot    { background: var(--error); }
+
+.file__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.file__name {
+  margin: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.file__ok  { color: var(--ok); }
+.file__bad { color: var(--error); }
+
+.file__renamed {
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 28ch;
+}
+
+.file__actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Indeterminate on purpose: the SDK uploads with `fetch`, which reports no byte progress. */
+.shimmer {
+  display: block;
+  height: 3px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.shimmer__fill {
+  display: block;
+  width: 35%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shimmer__fill { animation: none; width: 100%; opacity: 0.5; }
+}
+
+/* ---- buttons ------------------------------------------------------------ */
+
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.12s ease, background 0.12s ease;
+}
+
+.btn:hover:not(:disabled) { filter: brightness(0.97); }
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--ghost {
+  background: transparent;
+  font-size: 12px;
+  padding: 6px 12px;
+  color: var(--text-muted);
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn--link {
+  border: none;
+  background: none;
+  padding: 4px 6px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.btn--icon {
+  border: none;
+  background: none;
+  padding: 0 6px;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.btn--icon:hover:not(:disabled) { color: var(--error); }
