@@ -16,13 +16,17 @@ import { uniqueFileName } from '../fileName';
 import './Upload.css';
 
 /**
- * Shape Action Center uses for a `file` field: the root `ID` member is the attachment id, which is
- * what the downstream node resolves back into a file. Emitting the same shape the platform hands
- * *in* for a file input is what makes the array round-trip through a saved draft.
+ * Shape Action Center uses for a `file` field, mirroring what the platform's own Multi File Uploader
+ * writes. `ID` is the attachment id, and `Metadata.__type` is the marker that tells the runtime this
+ * object is a job attachment: without it a downstream RPA argument typed
+ * `UiPath.Platform.ResourceHandling.IResource` has nothing to materialise from and fails to bind,
+ * even though the entry-point schema only lists `ID` as required.
  */
 interface TaskFileRef {
   ID: string;
   FullName: string;
+  MimeType: string;
+  Metadata: { __type: 'JobAttachment'; __ID: string };
 }
 
 /** The action's only output: an array of `file`. */
@@ -39,6 +43,8 @@ interface UploadItem {
   name: string;
   /** Only set when `name` had to be suffixed, so the reviewer can see what was renamed. */
   originalName?: string;
+  /** Sent on to the downstream node; browsers leave it empty for unknown extensions. */
+  mimeType: string;
   size: number;
   status: ItemStatus;
   /** Set once the attachment exists in Orchestrator. */
@@ -70,10 +76,18 @@ const isDarkTheme = (theme: Theme): boolean =>
 const toFileRefs = (items: UploadItem[]): TaskFileRef[] =>
   items.reduce<TaskFileRef[]>((refs, item) => {
     if (item.status === 'uploaded' && item.attachmentId) {
-      refs.push({ ID: item.attachmentId, FullName: item.name });
+      refs.push({
+        ID: item.attachmentId,
+        FullName: item.name,
+        MimeType: item.mimeType,
+        Metadata: { __type: 'JobAttachment', __ID: item.attachmentId },
+      });
     }
     return refs;
   }, []);
+
+/** `File.type` is empty whenever the browser cannot map the extension. */
+const FALLBACK_MIME_TYPE = 'application/octet-stream';
 
 const errorMessage = (err: unknown, fallback: string): string =>
   err instanceof Error && err.message ? err.message : fallback;
@@ -148,6 +162,7 @@ const Upload = ({ onInitTheme }: UploadProps) => {
               .map((ref) => ({
                 id: crypto.randomUUID(),
                 name: ref.FullName || ref.ID,
+                mimeType: ref.MimeType || FALLBACK_MIME_TYPE,
                 size: 0,
                 status: 'uploaded' as const,
                 attachmentId: ref.ID,
@@ -276,6 +291,7 @@ const Upload = ({ onInitTheme }: UploadProps) => {
           id,
           name,
           originalName: name === file.name ? undefined : file.name,
+          mimeType: file.type || FALLBACK_MIME_TYPE,
           size: file.size,
           status: 'queued',
         });
