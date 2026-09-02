@@ -1,0 +1,31 @@
+{
+    "inputs": {
+        "type": "object",
+        "properties": {}
+    },
+    "outputs": {
+        "type": "object",
+        "properties": {
+            "uploadedFiles": {
+                "type": "array",
+                "required": true,
+                "items": {
+                    "type": "file"
+                },
+                "description": "Files the reviewer uploaded, each stored as a job attachment. Consumed by the downstream node."
+            }
+        }
+    },
+    "inOuts": {
+        "type": "object",
+        "properties": {}
+    },
+    "outcomes": {
+        "type": "object",
+        "properties": {
+            "Submit": {
+                "type": "string"
+            }
+        }
+    }
+}

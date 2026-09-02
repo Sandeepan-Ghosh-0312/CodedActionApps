@@ -34,6 +34,7 @@ A collection of starter templates and AI-assisted tooling for building **UiPath 
 | [templateWithDoc](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithDoc) | Coded Action app with document handling |
 | [templateWithDataFabricAndStorageBucketDoc](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithDataFabricAndStorageBucketDoc) | Coded Action app with Data Fabric entities and Storage Bucket documents |
 | [templateWithFileAttachment](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithFileAttachment) | Coded Action app with direct file attachments |
+| [templateWithMultiFileUpload](https://github.com/Sandeepan-Ghosh-0312/CodedActionApps/tree/main/templateWithMultiFileUpload) | Coded Action app that uploads up to 15 files of 100 MB each as job attachments, output as an array of `file` |
 
 ---
 
