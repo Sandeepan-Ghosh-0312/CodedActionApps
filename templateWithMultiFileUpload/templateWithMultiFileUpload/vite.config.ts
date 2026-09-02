@@ -7,8 +7,8 @@ export default defineConfig(() => {
       react(),
     ],
     optimizeDeps: {
-      include: ['@uipath/uipath-typescript'],
+      include: ['@uipath/uipath-typescript/core', '@uipath/uipath-typescript/attachments'],
     },
-    base: './', // Use relative paths for assets, base is dynamically injected using getAppBase()
+    base: './', // Relative asset paths - the app is served from a path the host decides.
   };
 });

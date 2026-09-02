@@ -3,7 +3,6 @@ import {
   DragEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -73,18 +72,17 @@ interface UploadProps {
 const isDarkTheme = (theme: Theme): boolean =>
   theme === Theme.Dark || theme === Theme.DarkHighContrast;
 
+/** A row reaches the output only once its attachment exists in Orchestrator. */
+const isUploaded = (item: UploadItem): item is UploadItem & { attachmentId: string } =>
+  item.status === 'uploaded' && item.attachmentId !== undefined;
+
 const toFileRefs = (items: UploadItem[]): TaskFileRef[] =>
-  items.reduce<TaskFileRef[]>((refs, item) => {
-    if (item.status === 'uploaded' && item.attachmentId) {
-      refs.push({
-        ID: item.attachmentId,
-        FullName: item.name,
-        MimeType: item.mimeType,
-        Metadata: { __type: 'JobAttachment', __ID: item.attachmentId },
-      });
-    }
-    return refs;
-  }, []);
+  items.filter(isUploaded).map((item): TaskFileRef => ({
+    ID: item.attachmentId,
+    FullName: item.name,
+    MimeType: item.mimeType,
+    Metadata: { __type: 'JobAttachment', __ID: item.attachmentId },
+  }));
 
 /** `File.type` is empty whenever the browser cannot map the extension. */
 const FALLBACK_MIME_TYPE = 'application/octet-stream';
@@ -364,7 +362,7 @@ const Upload = ({ onInitTheme }: UploadProps) => {
       .forEach((item) => retryItem(item.id));
   };
 
-  const uploadedFiles = useMemo(() => toFileRefs(items), [items]);
+  const uploadedCount = items.filter(isUploaded).length;
   const pending = items.filter((item) => item.status === 'queued' || item.status === 'uploading');
   const failed = items.filter((item) => item.status === 'failed');
   const isUploading = items.some((item) => item.status === 'uploading');
@@ -405,7 +403,7 @@ const Upload = ({ onInitTheme }: UploadProps) => {
     }
   };
 
-  const canSubmit = !isReadOnly && !isSubmitting && !isBusy && uploadedFiles.length > 0;
+  const canSubmit = !isReadOnly && !isSubmitting && !isBusy && uploadedCount > 0;
   const remaining = MAX_FILES - items.length;
 
   return (
@@ -485,7 +483,7 @@ const Upload = ({ onInitTheme }: UploadProps) => {
           <div className="files__head">
             <h2 className="files__title">Files</h2>
             <span className="files__summary">
-              {uploadedFiles.length} of {items.length} uploaded
+              {uploadedCount} of {items.length} uploaded
               {totalBytes > 0 && ` · ${formatBytes(doneBytes)} of ${formatBytes(totalBytes)}`}
             </span>
           </div>
@@ -564,9 +562,9 @@ const Upload = ({ onInitTheme }: UploadProps) => {
             ? 'This action is read-only.'
             : isBusy
               ? `${pending.length} ${pending.length === 1 ? 'file' : 'files'} still uploading — you can leave this tab open.`
-              : uploadedFiles.length === 0
+              : uploadedCount === 0
                 ? 'Attach at least one file to submit.'
-                : `${uploadedFiles.length} ${uploadedFiles.length === 1 ? 'file' : 'files'} ready to hand over.`}
+                : `${uploadedCount} ${uploadedCount === 1 ? 'file' : 'files'} ready to hand over.`}
         </span>
         <button type="button" className="btn btn--primary" onClick={submit} disabled={!canSubmit}>
           {isSubmitting ? 'Submitting…' : 'Submit'}
