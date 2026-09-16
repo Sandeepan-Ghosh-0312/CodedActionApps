@@ -52,7 +52,7 @@ in a **For Each** and use each item wherever an `IResource` is accepted.
 | Pick / drop files | `addFiles()` validates count and size **from the `File` handles only** — nothing is read |
 | De-duplicate names | A name already in the list gets a `(2)`, `(3)`… suffix, so same-named files are all kept |
 | Enqueue | Accepted rows go into a queue; the worker pool starts if it is not already running |
-| Upload | `attachments.create(name, file, { folderId })` creates the attachment and uploads it |
+| Upload | `attachments.create(name, file, { folderId, jobKey })` creates the attachment, links it to the job, and uploads it |
 | Publish | On each success `setTaskData({ uploadedFiles })` so Action Center can save the action in progress |
 | Submit | `completeTask('Submit', { uploadedFiles })` hands the array over |
 
@@ -60,11 +60,13 @@ in a **For Each** and use each item wherever an `IResource` is accepted.
 PUTs the content to the storage URI that comes back with it. The attachment is created in the task's
 own folder (`task.folderId`), which is where the job that consumes it runs.
 
-> **Linking to a specific job.** `attachments.create()` also takes `jobKey` and `category`, which
-> link the attachment to a job as part of the same call. This app does not pass them — the action's
-> `file` output is what carries the files to the next node, and Action Center resolves them against
-> the consuming job. Pass `jobKey` only if you have a job key in hand and want the attachment
-> visible under that job immediately.
+> **Why `jobKey` is passed.** `getTask()` returns `jobKey` — the key of the job that created the
+> action — and this app hands it to `attachments.create()`, which links the attachment to that job
+> in the same call. The link is what decides who can read the bytes back: an attachment that belongs
+> to no job is readable only by the account that created it, so an approver opening the action later
+> would get a 403 on the file the reviewer just uploaded. `jobKey` is `null` when the action was not
+> created by a job, in which case nothing is linked. `category` is the optional label that groups
+> the attachment within the job.
 
 ## How it stays responsive
 
@@ -163,12 +165,13 @@ directory would otherwise silently overwrite its own output. The logic is a sing
 |-------|-----------|
 | `OR.Folders.Write` | `attachments.create()` |
 | `OR.Folders.Read` | reading the attachment back |
+| `OR.Jobs.Write` | linking the attachment to the job (`jobKey`) |
 
 Put its client id in `uipath.json`:
 
 ```json
 {
-  "scope": "OR.Folders.Read OR.Folders.Write",
+  "scope": "OR.Folders.Read OR.Folders.Write OR.Jobs.Write",
   "clientId": "<external-application-clientId>"
 }
 ```

@@ -113,6 +113,12 @@ const Upload = ({ onInitTheme }: UploadProps) => {
   const poolRunningRef = useRef(false);
   const pumpRef = useRef<() => void>(() => {});
   const folderIdRef = useRef<number | undefined>(undefined);
+  /**
+   * The job behind this action. Attachments are created against it so the link decides who can
+   * read the bytes back: one that belongs to no job is readable only by the account that created
+   * it, so an approver opening the action later would get a 403 on what the reviewer uploaded.
+   */
+  const jobKeyRef = useRef<string | null>(null);
 
   /**
    * Mirror of `items` that the async upload workers read. State updates are queued by React, so a
@@ -145,6 +151,7 @@ const Upload = ({ onInitTheme }: UploadProps) => {
       try {
         const task = await codedActionApps.getTask();
         folderIdRef.current = task.folderId;
+        jobKeyRef.current = task.jobKey;
 
         // A saved draft comes back with the attachments already uploaded, so restore those rows as
         // finished. They have no `File` handle behind them, which is why retry is upload-only.
@@ -207,6 +214,9 @@ const Upload = ({ onInitTheme }: UploadProps) => {
          */
         const attachment = await attachments.create(name, file, {
           folderId: folderIdRef.current,
+          // Linked to the job in the same call - `jobs.linkAttachment()` is only needed to attach
+          // it to a further job later. Null when the action was not created by a job.
+          jobKey: jobKeyRef.current ?? undefined,
         });
         patchItem(id, {
           status: 'uploaded',
